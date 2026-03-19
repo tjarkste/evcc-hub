@@ -1,0 +1,21 @@
+# Build outputs
+web/dist/
+web/node_modules/
+backend/data.db
+backend/test.db
+
+# Go binaries
+backend/server
+
+# Test artifacts
+web/test-results/
+web/playwright-report/
+
+# Credentials
+.env
+deploy/mosquitto/certs/
+deploy/nginx/ssl/
+
+# OS
+.DS_Store
+*.swp
