@@ -1,0 +1,33 @@
+version: "3.8"
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./deploy/mosquitto/mosquitto.test.conf:/mosquitto/config/mosquitto.conf
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      MQTT_BROKER: mosquitto:1883
+      JWT_SECRET: test-secret
+      DB_PATH: /tmp/test.db
+      ENV: test
+    depends_on:
+      - mosquitto
+
+  simulator:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./scripts:/app
+    command: node simulator.js
+    environment:
+      MQTT_BROKER: mqtt://mosquitto:1883
+      MQTT_TOPIC: user/test_user_1/evcc
+    depends_on:
+      - mosquitto
