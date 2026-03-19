@@ -62,8 +62,8 @@ export default defineComponent({
 			return store.state.battery?.devices?.length;
 		},
 		showRoutes() {
-			// Login-Route immer anzeigen — kein startupCompleted nötig vor MQTT-Verbindung
-			return this.state.startupCompleted || this.$route.path === '/login';
+			// Cloud: immer anzeigen — kein startupCompleted nötig (kein WebSocket-Handshake)
+			return true;
 		},
 		state() {
 			const { state, uiLoadpoints } = store;

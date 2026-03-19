@@ -15,11 +15,10 @@ let currentTopicPrefix: string = ''
 
 export function connectMqtt(config: MqttConfig): MqttClient {
   currentTopicPrefix = config.topicPrefix
-
   client = mqtt.connect(config.brokerUrl, {
     username: config.username,
     password: config.password,
-    protocolVersion: 5,
+    protocolVersion: 4,
     reconnectPeriod: 2500,
   })
 
@@ -88,8 +87,11 @@ export function mqttToStoreUpdate(
     const storeIndex = mqttIndex - 1
     const field = parts.slice(2).join('.')
     storeKey = `loadpoints.${storeIndex}.${field}`
+  } else if (parts[0] === 'site' && parts.length >= 2) {
+    // site/pvPower → pvPower (evcc store is flat for site-level data)
+    storeKey = parts.slice(1).join('.')
   } else {
-    // site/pvPower → site.pvPower
+    // startupCompleted → startupCompleted
     storeKey = parts.join('.')
   }
 

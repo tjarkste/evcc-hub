@@ -10,6 +10,7 @@ const interval = parseInt(process.env.INTERVAL || '2000')
 // Feste Werte — deterministisch, Tests können exakt prüfen
 const state = {
   'site/pvPower': 6200,
+  'startupCompleted': 'true',
   'site/gridPower': -1800,
   'site/batteryPower': 1500,
   'site/batterySoc': 72,
