@@ -1,1 +1,0 @@
-import{_ as e,zt as t}from"./collector-C9LUXYID.js";var n=t({props:{size:{type:String,validator(t){return Object.values(e).includes(t)},default:e.S}},computed:{svgStyle(){let e={xs:`16px`,s:`24px`,m:`32px`,l:`48px`,xl:`64px`}[this.size];return{display:`block`,width:e,height:e}}}});export{n as t};
