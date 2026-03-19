@@ -12,7 +12,7 @@
 		<HelpModal />
 		<PasswordModal />
 		<LoginModal v-bind="loginModalProps" />
-		<OfflineIndicator v-bind="offlineIndicatorProps" />
+		<OfflineIndicator v-if="$route.path !== '/login'" v-bind="offlineIndicatorProps" />
 	</div>
 </template>
 
@@ -62,7 +62,8 @@ export default defineComponent({
 			return store.state.battery?.devices?.length;
 		},
 		showRoutes() {
-			return this.state.startupCompleted;
+			// Login-Route immer anzeigen — kein startupCompleted nötig vor MQTT-Verbindung
+			return this.state.startupCompleted || this.$route.path === '/login';
 		},
 		state() {
 			const { state, uiLoadpoints } = store;
