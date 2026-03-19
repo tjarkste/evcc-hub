@@ -58,11 +58,14 @@ export function stringifyQuery(query?: Record<string, any>): string {
   return parts.join("&");
 }
 
+const LoginView = () => import("./views/LoginView.vue");
+
 export default function setupRouter(i18n: VueI18nInstance) {
   const router = createRouter({
     history: createWebHashHistory(),
     stringifyQuery,
     routes: [
+      { path: "/login", component: LoginView, meta: { noAuth: true } },
       {
         path: "/",
         component: () => import("./views/Main.vue"),
@@ -131,6 +134,14 @@ export default function setupRouter(i18n: VueI18nInstance) {
     // Only hide modals when the actual route path changes, not query parameters
     if (to.path !== from.path) {
       hideAllModals();
+    }
+  });
+  router.beforeEach((to, _from, next) => {
+    const auth = localStorage.getItem("evcc-cloud-auth");
+    if (!auth && !to.meta["noAuth"]) {
+      next("/login");
+    } else {
+      next();
     }
   });
   initConfigModal(router);
