@@ -1,0 +1,1 @@
+var e=[`fatal`,`error`,`warn`,`info`,`debug`,`trace`],t=`debug`;export{e as n,t};

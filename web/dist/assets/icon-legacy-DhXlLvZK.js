@@ -1,0 +1,1 @@
+System.register(["./collector-legacy-MR6UOAuU.js"],function(t,e){var s,i;return{setters:[function(t){s=t._,i=t.zt}],execute:function(){t("t",i({props:{size:{type:String,validator:t=>Object.values(s).includes(t),default:s.S}},computed:{svgStyle(){const t={xs:"16px",s:"24px",m:"32px",l:"48px",xl:"64px"}[this.size];return{display:"block",width:t,height:t}}}}))}}});

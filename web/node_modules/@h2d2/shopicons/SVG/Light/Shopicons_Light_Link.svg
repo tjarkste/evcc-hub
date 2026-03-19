@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="48" width="48" viewBox="0 0 48 48">
+  <title>Shopicons_Light_Link</title>
+  <path d="M.5.4h48v48H.5Z" transform="translate(-0.5 -0.4)" style="fill: none"/>
+  <g>
+    <path d="M16,35h4V33H16a9,9,0,0,1,0-18h4V13H16a11,11,0,0,0,0,22Z" transform="translate(-0.5 -0.4)"/>
+    <path d="M32,13H28v2h4a9,9,0,0,1,0,18H28v2h4a11,11,0,0,0,0-22Z" transform="translate(-0.5 -0.4)"/>
+    <rect x="15.5" y="22.6" width="16" height="2"/>
+  </g>
+</svg>

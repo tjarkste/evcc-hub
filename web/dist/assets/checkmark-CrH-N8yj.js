@@ -1,0 +1,1 @@
+var e=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M0 0h48v48H0z" fill="none"/><path d="M18 33.172l-12-12L3.172 24 18 38.828 44.828 12 42 9.172z"/></svg>`,t=class extends HTMLElement{connectedCallback(){this.setAttribute(`data-shopicon`,!0),this.innerHTML=e}};window.customElements.define(`shopicon-regular-checkmark`,t);

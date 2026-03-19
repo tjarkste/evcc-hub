@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg"  height="48" width="48" viewBox="0 0 48 48">
+  <title>Shopicons_Bold_Link</title>
+  <path d="M0,0H48V48H0Z" transform="translate(0 0)" style="fill: none"/>
+  <g>
+    <path d="M16,36.5h4v-5H16a7.5,7.5,0,0,1,0-15h4v-5H16a12.5,12.5,0,0,0,0,25Z" transform="translate(0 0)"/>
+    <path d="M32,11.5H28v5h4a7.5,7.5,0,0,1,0,15H28v5h4a12.5,12.5,0,0,0,0-25Z" transform="translate(0 0)"/>
+    <rect x="16" y="21.5" width="16" height="5"/>
+  </g>
+</svg>
