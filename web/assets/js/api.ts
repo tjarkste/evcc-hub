@@ -1,93 +1,96 @@
-import axios, { type AxiosResponse } from "axios";
-import { openLoginModal } from "./components/Auth/auth";
+// web/assets/js/api.ts — Ersetzt axios durch MQTT-Publish
+// Das Interface bleibt kompatibel, damit keine Komponenten geändert werden müssen.
 
-const { protocol, hostname, port, pathname } = window.location;
+import { publishCommand } from './services/mqtt'
 
-const base = protocol + "//" + hostname + (port ? ":" + port : "") + pathname;
-
-// override the way axios serializes arrays in query parameters (a=1&a=2&a=3 instead of a[]=1&a[]=2&a[]=3)
-function customParamsSerializer(params: { [key: string]: any }) {
-  return Object.keys(params)
-    .filter((key) => params[key] !== null)
-    .map((key) => {
-      const value = params[key];
-      if (Array.isArray(value)) {
-        return value.map((v) => `${encodeURIComponent(key)}=${encodeURIComponent(v)}`).join("&");
-      }
-      return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-    })
-    .join("&");
+interface MqttMapping {
+  topic: string
+  payload: string
 }
 
-// general api client
-const api = axios.create({
-  baseURL: base + "api/",
-  headers: {
-    Accept: "application/json",
+/**
+ * Konvertiert REST-API-Pfade in MQTT-Topics.
+ *
+ * POST loadpoints/1/mode/pv      → loadpoints/1/mode/set, "pv"
+ * POST loadpoints/1/limitsoc/80  → loadpoints/1/limitSoc/set, "80"
+ * POST loadpoints/1/minsoc/20    → loadpoints/1/minSoc/set, "20"
+ * POST loadpoints/1/phases/3     → loadpoints/1/phasesConfigured/set, "3"
+ * POST site/batterymode/hold     → site/batteryMode/set, "hold"
+ */
+export function restPathToMqttTopic(path: string): MqttMapping | null {
+  // loadpoints/{id}/mode/{value}
+  let match = path.match(/^loadpoints\/(\d+)\/mode\/(.+)$/)
+  if (match) return { topic: `loadpoints/${match[1]}/mode/set`, payload: match[2] }
+
+  // loadpoints/{id}/limitsoc/{value}
+  match = path.match(/^loadpoints\/(\d+)\/limitsoc\/(.+)$/i)
+  if (match) return { topic: `loadpoints/${match[1]}/limitSoc/set`, payload: match[2] }
+
+  // loadpoints/{id}/minsoc/{value}
+  match = path.match(/^loadpoints\/(\d+)\/minsoc\/(.+)$/i)
+  if (match) return { topic: `loadpoints/${match[1]}/minSoc/set`, payload: match[2] }
+
+  // loadpoints/{id}/phases/{value}
+  match = path.match(/^loadpoints\/(\d+)\/phases\/(.+)$/)
+  if (match) return { topic: `loadpoints/${match[1]}/phasesConfigured/set`, payload: match[2] }
+
+  // site/batterymode/{value}
+  match = path.match(/^site\/batterymode\/(.+)$/i)
+  if (match) return { topic: `site/batteryMode/set`, payload: match[1] }
+
+  // site/smartcostlimit/{value}
+  match = path.match(/^site\/smartcostlimit\/(.+)$/i)
+  if (match) return { topic: `site/smartCostLimit/set`, payload: match[1] }
+
+  return null
+}
+
+// Kompatibilitäts-Wrapper: Fängt die gleichen Pfade ab wie die REST-API
+const api = {
+  post(path: string, _data?: unknown): Promise<{ data: unknown }> {
+    const mqttTopic = restPathToMqttTopic(path)
+    if (!mqttTopic) {
+      console.warn(`Kein MQTT-Äquivalent für: ${path}`)
+      return Promise.resolve({ data: {} })
+    }
+    publishCommand(mqttTopic.topic, mqttTopic.payload)
+    return Promise.resolve({ data: {} })
   },
-  paramsSerializer: customParamsSerializer,
-});
-
-const errorInterceptor = (error: any) => {
-  // handle unauthorized errors
-  if (error.response?.status === 401) {
-    openLoginModal();
-    return Promise.reject(error);
-  }
-
-  const message = [`${error.message}.`];
-  if (error.response?.data?.error) {
-    message.push(`${error.response.data.error}.`);
-  }
-  if (error.config) {
-    const { baseURL, url, method } = error.config;
-    const fullUrl = error.request.responseURL || `${baseURL}${url}`;
-    message.push(`${method.toUpperCase()} ${fullUrl}`);
-  }
-  window.app.raise({ message });
-  return Promise.reject(error);
-};
-api.interceptors.response.use((response) => response, errorInterceptor);
-
-export default api;
-
-// api client for calling non `/api` prefixed routes (e.g. auth provider)
-export const baseApi = axios.create({
-  baseURL: base,
-});
-baseApi.interceptors.response.use((response) => response, errorInterceptor);
-
-export const i18n = axios.create({
-  baseURL: base + "i18n/",
-  headers: {
-    Accept: "application/json",
+  // GET-Requests: Nicht benötigt (kein Config, kein Log im Cloud-MVP)
+  get(_path: string): Promise<{ data: unknown }> {
+    return Promise.resolve({ data: {} })
   },
-});
+}
+
+export default api
+
+// Named Exports für Kompatibilität mit Komponenten, die baseApi, i18n,
+// allowClientError oder downloadFile importieren.
+// Im Cloud-MVP werden diese Funktionen nicht aktiv genutzt,
+// aber fehlende Exporte würden den Build brechen.
+
+export const baseApi = {
+  get(_path: string): Promise<{ data: unknown }> {
+    return Promise.resolve({ data: {} })
+  },
+  post(_path: string, _data?: unknown): Promise<{ data: unknown }> {
+    return Promise.resolve({ data: {} })
+  },
+}
+
+export const i18n = {
+  get(_path: string): Promise<{ data: unknown }> {
+    return Promise.resolve({ data: {} })
+  },
+}
 
 export const allowClientError = {
   validateStatus(status: number) {
-    return status >= 200 && status < 500;
+    return status >= 200 && status < 500
   },
-};
+}
 
-export function downloadFile(res: AxiosResponse) {
-  if (res.status === 200) {
-    const blob = new Blob([res.data]);
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-
-    // Try to get filename from Content-Disposition header
-    let filename = "evcc.txt";
-    const disposition = res.headers["content-disposition"];
-    if (disposition && disposition.indexOf("filename=") !== -1) {
-      filename = disposition.split("filename=")[1].replace(/['"]/g, "").trim();
-    }
-
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  }
+export function downloadFile(_res: { status: number; data: unknown; headers: Record<string, string> }): void {
+  // Im Cloud-MVP nicht implementiert
+  console.warn('downloadFile ist im Cloud-MVP nicht verfügbar')
 }
