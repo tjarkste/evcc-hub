@@ -4,17 +4,15 @@ import type { MqttClient } from 'mqtt'
 import store from '../store'
 
 interface MqttConfig {
-  brokerUrl: string      // wss://mqtt.evcc-cloud.de/mqtt
-  username: string       // MQTT-Username
-  password: string       // MQTT-Passwort
-  topicPrefix: string    // user/abc123/evcc
+  brokerUrl: string
+  username: string
+  password: string
 }
 
 let client: MqttClient | null = null
 let currentTopicPrefix: string = ''
 
 export function connectMqtt(config: MqttConfig): MqttClient {
-  currentTopicPrefix = config.topicPrefix
   client = mqtt.connect(config.brokerUrl, {
     username: config.username,
     password: config.password,
@@ -24,11 +22,14 @@ export function connectMqtt(config: MqttConfig): MqttClient {
 
   client.on('connect', () => {
     store.state.offline = false
-    client!.subscribe(`${config.topicPrefix}/#`)
+    // Subscribe to active site if set
+    if (currentTopicPrefix) {
+      client!.subscribe(`${currentTopicPrefix}/#`)
+    }
   })
 
   client.on('message', (topic, payload) => {
-    const storeUpdate = mqttToStoreUpdate(topic, payload.toString(), config.topicPrefix)
+    const storeUpdate = mqttToStoreUpdate(topic, payload.toString(), currentTopicPrefix)
     if (storeUpdate) {
       store.update(storeUpdate)
     }
@@ -43,6 +44,22 @@ export function connectMqtt(config: MqttConfig): MqttClient {
   })
 
   return client
+}
+
+export function subscribeSite(topicPrefix: string): void {
+  if (!client) return
+
+  // Unsubscribe from old site
+  if (currentTopicPrefix) {
+    client.unsubscribe(`${currentTopicPrefix}/#`)
+  }
+
+  // Reset store state for new site
+  store.reset()
+
+  // Subscribe to new site
+  currentTopicPrefix = topicPrefix
+  client.subscribe(`${topicPrefix}/#`)
 }
 
 export function disconnectMqtt() {
@@ -63,17 +80,18 @@ export function getTopicPrefix(): string {
 /**
  * Konvertiert eine MQTT-Message in ein Store-Update-Objekt.
  *
- * MQTT-Topic:  user/abc/evcc/site/pvPower       → Store-Key: "site.pvPower"
- * MQTT-Topic:  user/abc/evcc/loadpoints/1/mode   → Store-Key: "loadpoints.0.mode"
+ * MQTT-Topic:  user/abc/site/s1/evcc/site/pvPower       -> Store-Key: "pvPower"
+ * MQTT-Topic:  user/abc/site/s1/evcc/loadpoints/1/mode   -> Store-Key: "loadpoints.0.mode"
  *
- * Kritisch: Loadpoint-Index 1-basiert (MQTT) → 0-basiert (Store-Array)
+ * Kritisch: Loadpoint-Index 1-basiert (MQTT) -> 0-basiert (Store-Array)
  */
 export function mqttToStoreUpdate(
   topic: string,
   payload: string,
   prefix: string
 ): Record<string, unknown> | null {
-  const relative = topic.replace(`${prefix}/`, '')
+  if (!prefix || !topic.startsWith(prefix + '/')) return null
+  const relative = topic.slice(prefix.length + 1)
   const parts = relative.split('/')
 
   // /set Topics ignorieren (sind Befehle, keine State-Updates)
@@ -82,16 +100,16 @@ export function mqttToStoreUpdate(
   let storeKey: string
 
   if (parts[0] === 'loadpoints' && parts.length >= 3) {
-    // loadpoints/1/mode → loadpoints.0.mode (Index 1→0)
+    // loadpoints/1/mode -> loadpoints.0.mode (Index 1->0)
     const mqttIndex = parseInt(parts[1])
     const storeIndex = mqttIndex - 1
     const field = parts.slice(2).join('.')
     storeKey = `loadpoints.${storeIndex}.${field}`
   } else if (parts[0] === 'site' && parts.length >= 2) {
-    // site/pvPower → pvPower (evcc store is flat for site-level data)
+    // site/pvPower -> pvPower (evcc store is flat for site-level data)
     storeKey = parts.slice(1).join('.')
   } else {
-    // startupCompleted → startupCompleted
+    // startupCompleted -> startupCompleted
     storeKey = parts.join('.')
   }
 
