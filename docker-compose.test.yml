@@ -28,6 +28,6 @@ services:
     command: node simulator.js
     environment:
       MQTT_BROKER: mqtt://mosquitto:1883
-      MQTT_TOPIC: user/test_user_1/evcc
+      MQTT_TOPIC: user/test_user_1/site/test_site_1/evcc
     depends_on:
       - mosquitto

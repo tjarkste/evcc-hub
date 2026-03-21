@@ -4,7 +4,7 @@
 const mqtt = require('mqtt')
 
 const broker = process.env.MQTT_BROKER || 'mqtt://localhost:1883'
-const prefix = process.env.MQTT_TOPIC || 'user/test_user_1/evcc'
+const prefix = process.env.MQTT_TOPIC || 'user/test_user_1/site/test_site_1/evcc'
 const interval = parseInt(process.env.INTERVAL || '2000')
 
 // Feste Werte — deterministisch, Tests können exakt prüfen
