@@ -59,6 +59,7 @@ export function stringifyQuery(query?: Record<string, any>): string {
 }
 
 const LoginView = () => import("./views/LoginView.vue");
+const SiteManager = () => import("./views/SiteManager.vue");
 
 export default function setupRouter(i18n: VueI18nInstance) {
   const router = createRouter({
@@ -66,6 +67,7 @@ export default function setupRouter(i18n: VueI18nInstance) {
     stringifyQuery,
     routes: [
       { path: "/login", component: LoginView, meta: { noAuth: true } },
+      { path: "/sites", component: SiteManager },
       {
         path: "/",
         component: () => import("./views/Main.vue"),
