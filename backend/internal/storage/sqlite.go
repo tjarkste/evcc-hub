@@ -80,6 +80,20 @@ func (db *DB) migrate() error {
 		return fmt.Errorf("create sites table: %w", err)
 	}
 
+	// Refresh tokens table
+	_, err = db.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS refresh_tokens (
+			id         TEXT PRIMARY KEY,
+			user_id    TEXT NOT NULL REFERENCES users(id),
+			token_hash TEXT NOT NULL,
+			expires_at DATETIME NOT NULL,
+			created_at DATETIME NOT NULL
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("create refresh_tokens table: %w", err)
+	}
+
 	// Migrate existing users: create a default site for each user without one
 	if err := db.migrateExistingUsersToSites(); err != nil {
 		return fmt.Errorf("migrate users to sites: %w", err)
@@ -416,4 +430,77 @@ func (db *DB) GetSiteByMQTTUsername(mqttUsername string) (*models.Site, error) {
 		return nil, err
 	}
 	return &s, nil
+}
+
+const refreshTokenDuration = 30 * 24 * time.Hour // 30 days
+
+// CreateRefreshToken stores a hashed refresh token for a user, returning the row ID.
+func (db *DB) CreateRefreshToken(userID, tokenHash string) (*models.RefreshToken, error) {
+	id := uuid.New().String()
+	now := time.Now().UTC()
+	expiresAt := now.Add(refreshTokenDuration)
+
+	_, err := db.conn.Exec(
+		`INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at, created_at)
+		 VALUES (?, ?, ?, ?, ?)`,
+		id, userID, tokenHash, expiresAt, now,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("insert refresh token: %w", err)
+	}
+	return &models.RefreshToken{
+		ID:        id,
+		UserID:    userID,
+		TokenHash: tokenHash,
+		ExpiresAt: expiresAt,
+		CreatedAt: now,
+	}, nil
+}
+
+// GetRefreshTokenByHash looks up a non-expired refresh token by its hash.
+func (db *DB) GetRefreshTokenByHash(tokenHash string) (*models.RefreshToken, error) {
+	var rt models.RefreshToken
+	err := db.conn.QueryRow(
+		`SELECT id, user_id, token_hash, expires_at, created_at
+		 FROM refresh_tokens WHERE token_hash = ? AND expires_at > ?`,
+		tokenHash, time.Now().UTC(),
+	).Scan(&rt.ID, &rt.UserID, &rt.TokenHash, &rt.ExpiresAt, &rt.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &rt, nil
+}
+
+// DeleteRefreshToken removes a refresh token by its hash (used for rotation and logout).
+func (db *DB) DeleteRefreshToken(tokenHash string) error {
+	_, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE token_hash = ?`, tokenHash)
+	return err
+}
+
+// DeleteRefreshTokensByUserID removes all refresh tokens for a user (force logout all sessions).
+func (db *DB) DeleteRefreshTokensByUserID(userID string) error {
+	_, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE user_id = ?`, userID)
+	return err
+}
+
+// CleanupExpiredRefreshTokens removes all expired refresh tokens.
+func (db *DB) CleanupExpiredRefreshTokens() (int64, error) {
+	result, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE expires_at <= ?`, time.Now().UTC())
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+// GetUserByID retrieves a user by their UUID.
+func (db *DB) GetUserByID(userID string) (*models.User, error) {
+	u := &models.User{}
+	err := db.conn.QueryRow(
+		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at
+		 FROM users WHERE id = ?`, userID,
+	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
