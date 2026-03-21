@@ -30,7 +30,8 @@ type AuthResponse struct {
 	Token        string `json:"token"`
 	MQTTUsername string `json:"mqttUsername"`
 	MQTTPassword string `json:"mqttPassword"`
-	TopicPrefix  string `json:"topicPrefix"`
+	UserID       string `json:"userId"`
+	DefaultSite  *Site  `json:"defaultSite,omitempty"`
 }
 
 // MQTTAuthRequest is the body sent by the Mosquitto auth plugin.

@@ -27,8 +27,10 @@ import LoginModal from "../components/Auth/LoginModal.vue";
 import HelpModal from "../components/HelpModal.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
-import { connectMqtt, disconnectMqtt } from "../services/mqtt";
+import { connectMqtt, disconnectMqtt, subscribeSite } from "../services/mqtt";
 import { getStoredAuth } from "../services/auth";
+import { fetchSites, getSelectedSiteId, setSelectedSiteId } from "../services/sites";
+import type { Site } from "../services/sites";
 
 export default defineComponent({
 	name: "App",
@@ -49,6 +51,8 @@ export default defineComponent({
 	data: () => {
 		return {
 			authNotConfigured: false,
+			sites: [] as Site[],
+			selectedSiteId: null as string | null,
 		};
 	},
 	head() {
@@ -93,18 +97,33 @@ export default defineComponent({
 			}
 		},
 	},
-	mounted() {
+	async mounted() {
 		const auth = getStoredAuth();
 		if (!auth) {
 			this.$router.push('/login');
 			return;
 		}
+
+		// Connect MQTT with user-level credentials (no site subscription yet)
 		connectMqtt({
 			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://mqtt.evcc-cloud.de/mqtt',
 			username: auth.mqttUsername,
 			password: auth.mqttPassword,
-			topicPrefix: auth.topicPrefix,
 		});
+
+		// Fetch sites and subscribe to selected or first site
+		try {
+			this.sites = await fetchSites();
+			if (this.sites.length > 0) {
+				const savedId = getSelectedSiteId();
+				const site = this.sites.find(s => s.id === savedId) || this.sites[0];
+				this.selectedSiteId = site.id;
+				setSelectedSiteId(site.id);
+				subscribeSite(site.topicPrefix);
+			}
+		} catch (e) {
+			console.error('Failed to fetch sites:', e);
+		}
 	},
 	unmounted() {
 		disconnectMqtt();

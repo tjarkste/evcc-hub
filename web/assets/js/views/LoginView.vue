@@ -93,6 +93,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { login, register } from '../services/auth'
+import type { Site } from '../services/sites'
 
 export default defineComponent({
   name: 'LoginView',
@@ -105,6 +106,7 @@ export default defineComponent({
       error: '',
       mqttConfig: '',
       copied: false,
+      siteCredentials: null as { mqttUsername: string; mqttPassword: string; topicPrefix: string } | null,
     }
   },
   methods: {
@@ -125,11 +127,14 @@ export default defineComponent({
       this.error = ''
       try {
         const auth = await register(this.email, this.password)
-        this.mqttConfig = `mqtt:
+        const site = auth.defaultSite
+        if (site) {
+          this.mqttConfig = `mqtt:
   broker: tls://mqtt.evcc-cloud.de:8883
-  topic: ${auth.topicPrefix}
-  user: ${auth.mqttUsername}
-  password: "${auth.mqttPassword}"`
+  topic: ${site.topicPrefix}
+  user: ${site.mqttUsername}
+  password: "${site.mqttPassword}"`
+        }
         this.mode = 'onboarding'
       } catch {
         this.error = 'Registrierung fehlgeschlagen. Bitte versuche es erneut.'

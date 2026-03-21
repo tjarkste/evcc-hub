@@ -32,6 +32,8 @@ func (h *mqttAuthHandler) MQTTAuth(c *gin.Context) {
 }
 
 // MQTTACL handles POST /api/mqtt/acl (Mosquitto HTTP ACL plugin).
+// NOTE: Mosquitto ACL requests have username + topic + acc but NO password.
+// We use LookupMQTTCredentialByUsername instead of AuthenticateMQTT.
 func (h *mqttAuthHandler) MQTTACL(c *gin.Context) {
 	var req models.MQTTACLRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -39,13 +41,13 @@ func (h *mqttAuthHandler) MQTTACL(c *gin.Context) {
 		return
 	}
 
-	user, err := h.db.GetUserByMQTTUsername(req.Username)
+	authResult, err := h.db.LookupMQTTCredentialByUsername(req.Username)
 	if err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "unknown user"})
 		return
 	}
 
-	if !CheckACL(user.TopicPrefix, req.Topic, req.Acc) {
+	if !CheckACL(authResult.CredType, authResult.TopicPrefix, authResult.UserID, req.Topic, req.Acc) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
@@ -53,27 +55,35 @@ func (h *mqttAuthHandler) MQTTACL(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// CheckACL decides whether a given topic access is allowed for the user's topicPrefix.
+// CheckACL decides whether a given topic access is allowed.
 //
 // ACL rules:
-//   - acc 1 (read):  topic must be exactly the prefix or start with prefix+"/"
-//   - acc 2 (write): topic must start with prefix+"/" and end with "/set"
-//   - acc 3 (read+write): both read and write rules must be satisfied
-//
-// Cross-user access is always denied.
-func CheckACL(topicPrefix, topic string, acc int) bool {
-	// Ensure the topic belongs to this user's prefix.
-	if topic != topicPrefix && !strings.HasPrefix(topic, topicPrefix+"/") {
-		return false
-	}
-
-	switch acc {
-	case 1: // read
+//   - Site credentials: full read+write to their own topic prefix subtree
+//   - User credentials: read across all user's sites, write only to /set topics
+func CheckACL(credType storage.MQTTCredentialType, topicPrefix, userID, topic string, acc int) bool {
+	switch credType {
+	case storage.MQTTCredSite:
+		if !strings.HasPrefix(topic, topicPrefix+"/") && topic != topicPrefix {
+			return false
+		}
 		return true
-	case 2: // write — topic must end with "/set"
-		return strings.HasSuffix(topic, "/set")
-	case 3: // read+write
-		return strings.HasSuffix(topic, "/set")
+
+	case storage.MQTTCredUser:
+		userPrefix := "user/" + userID + "/site/"
+		if !strings.HasPrefix(topic, userPrefix) {
+			return false
+		}
+		switch acc {
+		case 1: // read
+			return true
+		case 2: // write
+			return strings.HasSuffix(topic, "/set")
+		case 3: // read+write
+			return strings.HasSuffix(topic, "/set")
+		default:
+			return false
+		}
+
 	default:
 		return false
 	}
