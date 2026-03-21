@@ -36,11 +36,20 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Fetch default site created during registration
+	sites, _ := h.db.GetSitesByUserID(user.ID)
+	var defaultSite *models.Site
+	if len(sites) > 0 {
+		full, _ := h.db.GetSiteByMQTTUsername(sites[0].MQTTUsername)
+		defaultSite = full
+	}
+
 	c.JSON(http.StatusCreated, models.AuthResponse{
 		Token:        token,
 		MQTTUsername: user.MQTTUsername,
 		MQTTPassword: user.MQTTPassword,
-		TopicPrefix:  user.TopicPrefix,
+		UserID:       user.ID,
+		DefaultSite:  defaultSite,
 	})
 }
 
@@ -68,6 +77,6 @@ func (h *authHandler) Login(c *gin.Context) {
 		Token:        token,
 		MQTTUsername: user.MQTTUsername,
 		MQTTPassword: user.MQTTPassword,
-		TopicPrefix:  user.TopicPrefix,
+		UserID:       user.ID,
 	})
 }

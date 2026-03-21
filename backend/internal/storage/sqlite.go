@@ -215,16 +215,65 @@ func (db *DB) AuthenticateUser(email, plainPassword string) (*models.User, error
 	return u, nil
 }
 
-// AuthenticateMQTT looks up a user by MQTT username and verifies the MQTT password (plain comparison).
-func (db *DB) AuthenticateMQTT(mqttUsername, mqttPassword string) (*models.User, error) {
+// MQTTCredentialType indicates whether the authenticated credential belongs to a user or a site.
+type MQTTCredentialType int
+
+const (
+	MQTTCredUser MQTTCredentialType = iota
+	MQTTCredSite
+)
+
+// MQTTAuthResult holds the result of MQTT authentication.
+type MQTTAuthResult struct {
+	CredType    MQTTCredentialType
+	UserID      string
+	TopicPrefix string
+}
+
+// LookupMQTTCredentialByUsername identifies whether a username belongs to a user or site (no password check).
+func (db *DB) LookupMQTTCredentialByUsername(mqttUsername string) (*MQTTAuthResult, error) {
 	u, err := db.GetUserByMQTTUsername(mqttUsername)
-	if err != nil {
-		return nil, errors.New("invalid mqtt credentials")
+	if err == nil {
+		return &MQTTAuthResult{
+			CredType:    MQTTCredUser,
+			UserID:      u.ID,
+			TopicPrefix: "user/" + u.ID + "/site",
+		}, nil
 	}
-	if u.MQTTPassword != mqttPassword {
-		return nil, errors.New("invalid mqtt credentials")
+
+	s, err := db.GetSiteByMQTTUsername(mqttUsername)
+	if err == nil {
+		return &MQTTAuthResult{
+			CredType:    MQTTCredSite,
+			UserID:      s.UserID,
+			TopicPrefix: s.TopicPrefix,
+		}, nil
 	}
-	return u, nil
+
+	return nil, errors.New("unknown mqtt username")
+}
+
+// AuthenticateMQTT checks both user and site credentials and returns the result.
+func (db *DB) AuthenticateMQTT(mqttUsername, mqttPassword string) (*MQTTAuthResult, error) {
+	u, err := db.GetUserByMQTTUsername(mqttUsername)
+	if err == nil && u.MQTTPassword == mqttPassword {
+		return &MQTTAuthResult{
+			CredType:    MQTTCredUser,
+			UserID:      u.ID,
+			TopicPrefix: "user/" + u.ID + "/site",
+		}, nil
+	}
+
+	s, err := db.GetSiteByMQTTUsername(mqttUsername)
+	if err == nil && s.MQTTPassword == mqttPassword {
+		return &MQTTAuthResult{
+			CredType:    MQTTCredSite,
+			UserID:      s.UserID,
+			TopicPrefix: s.TopicPrefix,
+		}, nil
+	}
+
+	return nil, errors.New("invalid mqtt credentials")
 }
 
 // GenerateMQTTUsername derives a stable MQTT username from a user UUID.

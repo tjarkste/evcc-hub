@@ -2,78 +2,58 @@ package api
 
 import (
 	"testing"
+
+	"evcc-cloud/backend/internal/storage"
 )
 
-const testUserID = "550e8400-e29b-41d4-a716-446655440000"
-const testPrefix = "user/" + testUserID + "/evcc"
+func TestCheckACL_SiteCredentials(t *testing.T) {
+	prefix := "user/u1/site/s1/evcc"
 
-func TestCheckACL_ReadOwnPrefix(t *testing.T) {
-	// Reading the exact prefix is allowed.
-	if !CheckACL(testPrefix, testPrefix, 1) {
-		t.Error("expected read on own prefix to be allowed")
+	tests := []struct {
+		name   string
+		topic  string
+		acc    int
+		expect bool
+	}{
+		{"read own data", "user/u1/site/s1/evcc/site/pvPower", 1, true},
+		{"write own data", "user/u1/site/s1/evcc/loadpoints/1/mode", 2, true},
+		{"write own /set", "user/u1/site/s1/evcc/loadpoints/1/mode/set", 2, true},
+		{"read+write own data", "user/u1/site/s1/evcc/site/pvPower", 3, true},
+		{"deny other site", "user/u1/site/s2/evcc/site/pvPower", 1, false},
+		{"deny other user", "user/u2/site/s1/evcc/site/pvPower", 1, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckACL(storage.MQTTCredSite, prefix, "u1", tt.topic, tt.acc)
+			if got != tt.expect {
+				t.Errorf("CheckACL(%q, %q, %d) = %v, want %v", prefix, tt.topic, tt.acc, got, tt.expect)
+			}
+		})
 	}
 }
 
-func TestCheckACL_ReadOwnSubtopic(t *testing.T) {
-	cases := []string{
-		testPrefix + "/site/pvPower",
-		testPrefix + "/loadpoints/1/mode",
-		testPrefix + "/loadpoints/1/chargePower",
+func TestCheckACL_UserCredentials(t *testing.T) {
+	tests := []struct {
+		name   string
+		topic  string
+		acc    int
+		expect bool
+	}{
+		{"read own site", "user/u1/site/s1/evcc/site/pvPower", 1, true},
+		{"read another own site", "user/u1/site/s2/evcc/site/pvPower", 1, true},
+		{"write /set topic", "user/u1/site/s1/evcc/loadpoints/1/mode/set", 2, true},
+		{"deny write non-set topic", "user/u1/site/s1/evcc/loadpoints/1/mode", 2, false},
+		{"deny read other user", "user/u2/site/s1/evcc/site/pvPower", 1, false},
+		{"deny write other user /set", "user/u2/site/s1/evcc/loadpoints/1/mode/set", 2, false},
 	}
-	for _, topic := range cases {
-		if !CheckACL(testPrefix, topic, 1) {
-			t.Errorf("expected read on %q to be allowed", topic)
-		}
-	}
-}
 
-func TestCheckACL_WriteSetTopic(t *testing.T) {
-	cases := []string{
-		testPrefix + "/loadpoints/1/mode/set",
-		testPrefix + "/loadpoints/1/minSoc/set",
-		testPrefix + "/site/set",
-	}
-	for _, topic := range cases {
-		if !CheckACL(testPrefix, topic, 2) {
-			t.Errorf("expected write on %q to be allowed", topic)
-		}
-	}
-}
-
-func TestCheckACL_WriteNonSetTopicDenied(t *testing.T) {
-	cases := []string{
-		testPrefix + "/site/pvPower",
-		testPrefix + "/loadpoints/1/mode",
-	}
-	for _, topic := range cases {
-		if CheckACL(testPrefix, topic, 2) {
-			t.Errorf("expected write on %q to be denied (no /set suffix)", topic)
-		}
-	}
-}
-
-func TestCheckACL_CrossUserDenied(t *testing.T) {
-	otherPrefix := "user/other-user-id/evcc"
-	if CheckACL(testPrefix, otherPrefix+"/site/pvPower", 1) {
-		t.Error("expected cross-user read to be denied")
-	}
-	if CheckACL(testPrefix, otherPrefix+"/loadpoints/1/mode/set", 2) {
-		t.Error("expected cross-user write to be denied")
-	}
-}
-
-func TestCheckACL_UnknownAccDenied(t *testing.T) {
-	if CheckACL(testPrefix, testPrefix+"/site/pvPower", 99) {
-		t.Error("expected unknown acc to be denied")
-	}
-}
-
-func TestCheckACL_ReadWriteCombined(t *testing.T) {
-	// acc=3 (read+write): only /set topics should be allowed.
-	if !CheckACL(testPrefix, testPrefix+"/loadpoints/1/mode/set", 3) {
-		t.Error("expected acc=3 write+read on /set topic to be allowed")
-	}
-	if CheckACL(testPrefix, testPrefix+"/site/pvPower", 3) {
-		t.Error("expected acc=3 on non-set topic to be denied")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckACL(storage.MQTTCredUser, "user/u1/site", "u1", tt.topic, tt.acc)
+			if got != tt.expect {
+				t.Errorf("CheckACL(user, %q, %d) = %v, want %v", tt.topic, tt.acc, got, tt.expect)
+			}
+		})
 	}
 }
