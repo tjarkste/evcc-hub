@@ -34,6 +34,7 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 
 	ah := &authHandler{db: db, jwtSecret: cfg.JWTSecret}
 	mh := &mqttAuthHandler{db: db}
+	sh := &siteHandler{db: db}
 
 	apiGroup := r.Group("/api")
 	{
@@ -47,6 +48,15 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 		{
 			mqttGroup.POST("/auth", mh.MQTTAuth)
 			mqttGroup.POST("/acl", mh.MQTTACL)
+		}
+
+		sitesGroup := apiGroup.Group("/sites")
+		sitesGroup.Use(JWTAuthMiddleware(cfg.JWTSecret))
+		{
+			sitesGroup.POST("", sh.CreateSite)
+			sitesGroup.GET("", sh.ListSites)
+			sitesGroup.PUT("/:id", sh.UpdateSite)
+			sitesGroup.DELETE("/:id", sh.DeleteSite)
 		}
 	}
 
