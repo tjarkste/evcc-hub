@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const tokenDuration = 24 * time.Hour
+const tokenDuration = 15 * time.Minute
 
 // Claims are the custom JWT claims used in access tokens.
 type Claims struct {

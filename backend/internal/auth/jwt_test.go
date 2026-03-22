@@ -32,7 +32,7 @@ func TestGenerateAndValidateToken(t *testing.T) {
 	}
 }
 
-func TestToken_ExpiresIn24Hours(t *testing.T) {
+func TestToken_ExpiresIn15Minutes(t *testing.T) {
 	token, err := GenerateToken("uid", "user@example.com", testSecret)
 	if err != nil {
 		t.Fatalf("GenerateToken error: %v", err)
@@ -48,11 +48,11 @@ func TestToken_ExpiresIn24Hours(t *testing.T) {
 	duration := expiry.Sub(issued)
 
 	// Allow a small margin (1 second) for test execution time.
-	if duration < 23*time.Hour+59*time.Minute {
-		t.Errorf("expected ~24h expiry, got %v", duration)
+	if duration < 14*time.Minute+59*time.Second {
+		t.Errorf("expected ~15min expiry, got %v", duration)
 	}
-	if duration > 24*time.Hour+time.Second {
-		t.Errorf("expected ~24h expiry, got %v", duration)
+	if duration > 15*time.Minute+time.Second {
+		t.Errorf("expected ~15min expiry, got %v", duration)
 	}
 }
 
