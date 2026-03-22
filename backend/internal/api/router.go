@@ -38,10 +38,11 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 
 	apiGroup := r.Group("/api")
 	{
+		authRateLimiter := RateLimiter(0.083, 5) // ~5 requests per minute per IP, burst of 5
 		authGroup := apiGroup.Group("/auth")
 		{
-			authGroup.POST("/register", ah.Register)
-			authGroup.POST("/login", ah.Login)
+			authGroup.POST("/register", authRateLimiter, ah.Register)
+			authGroup.POST("/login", authRateLimiter, ah.Login)
 			authGroup.POST("/refresh", ah.Refresh)
 			authGroup.POST("/logout", ah.Logout)
 		}
