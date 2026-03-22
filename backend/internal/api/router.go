@@ -22,6 +22,7 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(SecurityHeaders())
 
 	if cfg.DevMode {
 		r.Use(corsMiddleware())
