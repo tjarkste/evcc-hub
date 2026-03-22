@@ -492,6 +492,13 @@ func (db *DB) CleanupExpiredRefreshTokens() (int64, error) {
 	return result.RowsAffected()
 }
 
+// CountSitesByUserID returns the number of sites for a user.
+func (db *DB) CountSitesByUserID(userID string) (int, error) {
+	var count int
+	err := db.conn.QueryRow(`SELECT COUNT(*) FROM sites WHERE user_id = ?`, userID).Scan(&count)
+	return count, err
+}
+
 // GetUserByID retrieves a user by their UUID.
 func (db *DB) GetUserByID(userID string) (*models.User, error) {
 	u := &models.User{}

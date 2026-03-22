@@ -25,6 +25,28 @@ func setupAuthTestRouter(t *testing.T) (*gin.Engine, *storage.DB) {
 	return r, db
 }
 
+func TestRegister_PasswordTooLong(t *testing.T) {
+	r, db := setupAuthTestRouter(t)
+	defer db.Close()
+
+	longPass := make([]byte, 200)
+	for i := range longPass {
+		longPass[i] = 'a'
+	}
+	body, _ := json.Marshal(map[string]string{
+		"email":    "long@test.de",
+		"password": string(longPass),
+	})
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/api/auth/register", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("got %d, want 400 for 200-char password", w.Code)
+	}
+}
+
 func TestRefreshEndpoint_Success(t *testing.T) {
 	r, db := setupAuthTestRouter(t)
 	defer db.Close()

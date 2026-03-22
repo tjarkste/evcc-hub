@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -129,6 +130,31 @@ func TestSitesRequireAuth(t *testing.T) {
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401 without token, got %d", w.Code)
+	}
+}
+
+func TestCreateSite_MaxSitesLimit(t *testing.T) {
+	r, db, jwtSecret := setupTestRouter(t)
+	defer db.Close()
+
+	user, _ := db.CreateUser("limit@test.de", "testpass123")
+	token, _ := auth.GenerateToken(user.ID, user.Email, jwtSecret)
+
+	// There's already 1 default site; create 9 more to hit the limit of 10
+	for i := 0; i < 9; i++ {
+		db.CreateSite(user.ID, fmt.Sprintf("Site %d", i), nil)
+	}
+
+	// 11th site creation attempt should fail
+	body, _ := json.Marshal(map[string]string{"name": "One Too Many"})
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/api/sites", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Errorf("got %d, want 409 for exceeding site limit", w.Code)
 	}
 }
 

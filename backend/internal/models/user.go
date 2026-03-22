@@ -24,14 +24,14 @@ type RefreshToken struct {
 
 // RegisterRequest is the JSON body for POST /api/auth/register.
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
+	Email    string `json:"email" binding:"required,email,max=254"`
+	Password string `json:"password" binding:"required,min=8,max=128"`
 }
 
 // LoginRequest is the JSON body for POST /api/auth/login.
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
+	Password string `json:"password" binding:"required,max=128"`
 }
 
 // RefreshRequest is the JSON body for POST /api/auth/refresh.

@@ -13,6 +13,8 @@ type siteHandler struct {
 	db *storage.DB
 }
 
+const maxSitesPerUser = 10
+
 // CreateSite handles POST /api/sites.
 func (h *siteHandler) CreateSite(c *gin.Context) {
 	var req models.CreateSiteRequest
@@ -22,6 +24,17 @@ func (h *siteHandler) CreateSite(c *gin.Context) {
 	}
 
 	userID := c.GetString("userID")
+
+	count, err := h.db.CountSitesByUserID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not check site limit"})
+		return
+	}
+	if count >= maxSitesPerUser {
+		c.JSON(http.StatusConflict, gin.H{"error": "maximum number of sites reached"})
+		return
+	}
+
 	site, err := h.db.CreateSite(userID, req.Name, req.Timezone)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create site"})

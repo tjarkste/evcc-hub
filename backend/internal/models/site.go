@@ -18,7 +18,7 @@ type Site struct {
 // CreateSiteRequest is the JSON body for POST /api/sites.
 type CreateSiteRequest struct {
 	Name     string  `json:"name" binding:"required,min=1,max=100"`
-	Timezone *string `json:"timezone"`
+	Timezone *string `json:"timezone" binding:"omitempty,max=50"`
 }
 
 // UpdateSiteRequest is the JSON body for PUT /api/sites/:id.
