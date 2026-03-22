@@ -42,6 +42,8 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 		{
 			authGroup.POST("/register", ah.Register)
 			authGroup.POST("/login", ah.Login)
+			authGroup.POST("/refresh", ah.Refresh)
+			authGroup.POST("/logout", ah.Logout)
 		}
 
 		mqttGroup := apiGroup.Group("/mqtt")
