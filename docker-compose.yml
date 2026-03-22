@@ -14,6 +14,8 @@ services:
     ports:
       - "8080:8080"
     env_file: .env
+    environment:
+      MQTT_BROKER_ADDR: "mosquitto:1883"
     depends_on:
       - mosquitto
 
