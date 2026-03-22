@@ -53,7 +53,8 @@ func RateLimiter(rps float64, burst int) gin.HandlerFunc {
 			ip = c.Request.RemoteAddr
 		}
 		if !getLimiter(ip).Allow() {
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "too many requests"})
+			apiError(c, http.StatusTooManyRequests, "rate_limited", "too many requests")
+			c.Abort()
 			return
 		}
 		c.Next()
