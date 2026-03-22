@@ -13,7 +13,6 @@ services:
     ports:
       - "8080:8080"
     environment:
-      MQTT_BROKER: mosquitto:1883
       MQTT_BROKER_ADDR: "mosquitto:1883"
       JWT_SECRET: test-secret
       DB_PATH: /tmp/test.db

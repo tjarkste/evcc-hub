@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"evcc-cloud/backend/internal/models"
@@ -27,7 +28,8 @@ func (h *siteHandler) CreateSite(c *gin.Context) {
 
 	count, err := h.db.CountSitesByUserID(userID)
 	if err != nil {
-		apiError(c, http.StatusInternalServerError, "site_creation_failed", err.Error())
+		log.Printf("CountSitesByUserID error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_creation_failed", "could not create site")
 		return
 	}
 	if count >= maxSitesPerUser {
@@ -37,7 +39,8 @@ func (h *siteHandler) CreateSite(c *gin.Context) {
 
 	site, err := h.db.CreateSite(userID, req.Name, req.Timezone)
 	if err != nil {
-		apiError(c, http.StatusInternalServerError, "site_creation_failed", err.Error())
+		log.Printf("CreateSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_creation_failed", "could not create site")
 		return
 	}
 
@@ -49,7 +52,8 @@ func (h *siteHandler) ListSites(c *gin.Context) {
 	userID := c.GetString("userID")
 	sites, err := h.db.GetSitesByUserID(userID)
 	if err != nil {
-		apiError(c, http.StatusInternalServerError, "site_fetch_failed", err.Error())
+		log.Printf("GetSitesByUserID error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_fetch_failed", "could not fetch sites")
 		return
 	}
 	if sites == nil {
@@ -79,7 +83,8 @@ func (h *siteHandler) UpdateSite(c *gin.Context) {
 			apiError(c, http.StatusNotFound, "site_not_found", "site not found or not owned by user")
 			return
 		}
-		apiError(c, http.StatusInternalServerError, "site_update_failed", err.Error())
+		log.Printf("UpdateSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_update_failed", "could not update site")
 		return
 	}
 
@@ -97,7 +102,8 @@ func (h *siteHandler) DeleteSite(c *gin.Context) {
 			apiError(c, http.StatusNotFound, "site_not_found", "site not found or not owned by user")
 			return
 		}
-		apiError(c, http.StatusInternalServerError, "site_delete_failed", err.Error())
+		log.Printf("DeleteSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_delete_failed", "could not delete site")
 		return
 	}
 

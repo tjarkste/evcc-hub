@@ -88,6 +88,12 @@ export function connectMqtt(config: MqttConfig): MqttClient {
     }
   })
 
+  client.on('offline', () => {
+    if (savedConfig) {
+      scheduleReconnect()
+    }
+  })
+
   client.on('close', () => {
     if (savedConfig) {
       scheduleReconnect()

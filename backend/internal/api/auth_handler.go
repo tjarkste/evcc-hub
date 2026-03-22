@@ -1,7 +1,9 @@
 package api
 
 import (
+	"log"
 	"net/http"
+	"strings"
 
 	"evcc-cloud/backend/internal/auth"
 	"evcc-cloud/backend/internal/models"
@@ -25,8 +27,12 @@ func (h *authHandler) Register(c *gin.Context) {
 
 	user, err := h.db.CreateUser(req.Email, req.Password)
 	if err != nil {
-		// Duplicate email results in a UNIQUE constraint error.
-		apiError(c, http.StatusConflict, "duplicate_email", "email already registered")
+		if strings.Contains(err.Error(), "UNIQUE constraint") {
+			apiError(c, http.StatusConflict, "duplicate_email", "email already registered")
+		} else {
+			log.Printf("CreateUser error: %v", err)
+			apiError(c, http.StatusInternalServerError, "registration_failed", "could not create account")
+		}
 		return
 	}
 
