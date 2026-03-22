@@ -28,7 +28,7 @@ import HelpModal from "../components/HelpModal.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite } from "../services/mqtt";
-import { getStoredAuth } from "../services/auth";
+import { getStoredAuth, scheduleTokenRefresh, stopTokenRefresh } from "../services/auth";
 import { fetchSites, getSelectedSiteId, setSelectedSiteId } from "../services/sites";
 import type { Site } from "../services/sites";
 
@@ -104,6 +104,8 @@ export default defineComponent({
 			return;
 		}
 
+		scheduleTokenRefresh();
+
 		// Connect MQTT with user-level credentials (no site subscription yet)
 		connectMqtt({
 			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://mqtt.evcc-cloud.de/mqtt',
@@ -126,6 +128,7 @@ export default defineComponent({
 		}
 	},
 	unmounted() {
+		stopTokenRefresh();
 		disconnectMqtt();
 	},
 	methods: {
