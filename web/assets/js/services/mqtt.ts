@@ -3,6 +3,7 @@ import mqtt from 'mqtt'
 import type { MqttClient } from 'mqtt'
 import store from '../store'
 import { ConnectionState } from '../types/evcc'
+import { saveStateCache } from './stateCache'
 
 interface MqttConfig {
   brokerUrl: string
@@ -83,6 +84,7 @@ export function connectMqtt(config: MqttConfig): MqttClient {
     const storeUpdate = mqttToStoreUpdate(topic, payload.toString(), currentTopicPrefix)
     if (storeUpdate) {
       store.update(storeUpdate)
+      saveStateCache(store.state)
     }
   })
 
@@ -99,6 +101,8 @@ export function connectMqtt(config: MqttConfig): MqttClient {
   return client
 }
 
+const CACHED_TOPIC_KEY = 'evcc-cloud-cached-topic-prefix'
+
 export function subscribeSite(topicPrefix: string): void {
   if (!client) return
 
@@ -108,7 +112,12 @@ export function subscribeSite(topicPrefix: string): void {
 
   store.reset()
   currentTopicPrefix = topicPrefix
+  localStorage.setItem(CACHED_TOPIC_KEY, topicPrefix)
   client.subscribe(`${topicPrefix}/#`)
+}
+
+export function getCachedTopicPrefix(): string | null {
+  return localStorage.getItem(CACHED_TOPIC_KEY)
 }
 
 export function disconnectMqtt() {
