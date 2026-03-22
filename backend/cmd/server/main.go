@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"evcc-cloud/backend/internal/api"
 	"evcc-cloud/backend/internal/storage"
@@ -21,6 +26,7 @@ func main() {
 
 	env := os.Getenv("ENV")
 	devMode := env == "development"
+	corsOrigin := os.Getenv("CORS_ORIGIN")
 
 	db, err := storage.Open(dbPath)
 	if err != nil {
@@ -34,12 +40,35 @@ func main() {
 	}
 
 	router := api.NewRouter(db, api.Config{
-		JWTSecret: jwtSecret,
-		DevMode:   devMode,
+		JWTSecret:  jwtSecret,
+		DevMode:    devMode,
+		CORSOrigin: corsOrigin,
 	})
 
-	log.Printf("evcc-cloud backend starting on :%s (dev=%v)", port, devMode)
-	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("server error: %v", err)
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
+
+	go func() {
+		log.Printf("evcc-cloud backend starting on :%s (dev=%v)", port, devMode)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server error: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("forced shutdown: %v", err)
+	}
+	log.Println("server stopped")
 }
