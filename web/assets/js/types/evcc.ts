@@ -3,6 +3,12 @@ import type { ForecastSlot, SolarDetails } from "../components/Forecast/types";
 
 export const GRID_CONTROL = "gridcontrol";
 
+export enum ConnectionState {
+  CONNECTED = "connected",
+  RECONNECTING = "reconnecting",
+  OFFLINE = "offline",
+}
+
 // react-native-webview
 interface WebView {
   postMessage: (message: string) => void;
@@ -52,6 +58,8 @@ export interface FatalError {
 
 export interface State {
   offline: boolean;
+  connectionState: ConnectionState;
+  lastDataAt: number | null;
   telemetry?: boolean;
   experimental?: boolean;
   setupRequired?: boolean;

@@ -2,6 +2,7 @@
 import mqtt from 'mqtt'
 import type { MqttClient } from 'mqtt'
 import store from '../store'
+import { ConnectionState } from '../types/evcc'
 
 interface MqttConfig {
   brokerUrl: string
@@ -11,36 +12,88 @@ interface MqttConfig {
 
 let client: MqttClient | null = null
 let currentTopicPrefix: string = ''
+let reconnectAttempt = 0
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+let savedConfig: MqttConfig | null = null
+
+const MAX_BACKOFF_MS = 30_000
+const BASE_DELAY_MS = 1_000
+
+/**
+ * Calculate reconnect delay with exponential backoff and jitter.
+ * Formula: min(base * 2^attempt, cap) + random jitter (0–50% of delay)
+ */
+export function calculateBackoff(attempt: number): number {
+  const exponential = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_BACKOFF_MS)
+  const jitter = Math.random() * exponential * 0.5
+  return exponential + jitter
+}
+
+function setConnectionState(state: ConnectionState): void {
+  store.state.connectionState = state
+  store.state.offline = state !== ConnectionState.CONNECTED
+}
+
+function scheduleReconnect(): void {
+  if (reconnectTimer) clearTimeout(reconnectTimer)
+  if (!savedConfig) return
+
+  setConnectionState(ConnectionState.RECONNECTING)
+  const delay = calculateBackoff(reconnectAttempt)
+  console.log(`MQTT reconnecting in ${Math.round(delay)}ms (attempt ${reconnectAttempt + 1})`)
+
+  reconnectTimer = setTimeout(() => {
+    reconnectAttempt++
+    if (client) {
+      client.reconnect()
+    }
+  }, delay)
+}
 
 export function connectMqtt(config: MqttConfig): MqttClient {
+  savedConfig = config
+  reconnectAttempt = 0
+
+  setConnectionState(ConnectionState.RECONNECTING)
+
   client = mqtt.connect(config.brokerUrl, {
     username: config.username,
     password: config.password,
     protocolVersion: 4,
-    reconnectPeriod: 2500,
+    reconnectPeriod: 0, // disable built-in reconnect — we manage it
   })
 
   client.on('connect', () => {
-    store.state.offline = false
-    // Subscribe to active site if set
+    console.log('MQTT connected')
+    reconnectAttempt = 0
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+    setConnectionState(ConnectionState.CONNECTED)
+
+    // Re-subscribe to active site
     if (currentTopicPrefix) {
       client!.subscribe(`${currentTopicPrefix}/#`)
     }
   })
 
   client.on('message', (topic, payload) => {
+    store.state.lastDataAt = Date.now()
     const storeUpdate = mqttToStoreUpdate(topic, payload.toString(), currentTopicPrefix)
     if (storeUpdate) {
       store.update(storeUpdate)
     }
   })
 
-  client.on('offline', () => {
-    store.state.offline = true
+  client.on('close', () => {
+    if (savedConfig) {
+      scheduleReconnect()
+    }
   })
 
-  client.on('close', () => {
-    store.state.offline = true
+  client.on('error', (err) => {
+    console.warn('MQTT error:', err.message)
   })
 
   return client
@@ -49,23 +102,25 @@ export function connectMqtt(config: MqttConfig): MqttClient {
 export function subscribeSite(topicPrefix: string): void {
   if (!client) return
 
-  // Unsubscribe from old site
   if (currentTopicPrefix) {
     client.unsubscribe(`${currentTopicPrefix}/#`)
   }
 
-  // Reset store state for new site
   store.reset()
-
-  // Subscribe to new site
   currentTopicPrefix = topicPrefix
   client.subscribe(`${topicPrefix}/#`)
 }
 
 export function disconnectMqtt() {
+  savedConfig = null
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer)
+    reconnectTimer = null
+  }
   client?.end()
   client = null
   currentTopicPrefix = ''
+  setConnectionState(ConnectionState.OFFLINE)
 }
 
 export function publishCommand(topicSuffix: string, value: string) {
@@ -79,11 +134,6 @@ export function getTopicPrefix(): string {
 
 /**
  * Konvertiert eine MQTT-Message in ein Store-Update-Objekt.
- *
- * MQTT-Topic:  user/abc/site/s1/evcc/site/pvPower       -> Store-Key: "pvPower"
- * MQTT-Topic:  user/abc/site/s1/evcc/loadpoints/1/mode   -> Store-Key: "loadpoints.0.mode"
- *
- * Kritisch: Loadpoint-Index 1-basiert (MQTT) -> 0-basiert (Store-Array)
  */
 export function mqttToStoreUpdate(
   topic: string,
@@ -94,26 +144,27 @@ export function mqttToStoreUpdate(
   const relative = topic.slice(prefix.length + 1)
   const parts = relative.split('/')
 
-  // /set Topics ignorieren (sind Befehle, keine State-Updates)
   if (parts[parts.length - 1] === 'set') return null
 
   let storeKey: string
 
   if (parts[0] === 'loadpoints' && parts.length >= 3) {
-    // loadpoints/1/mode -> loadpoints.0.mode (Index 1->0)
     const mqttIndex = parseInt(parts[1])
     const storeIndex = mqttIndex - 1
     const field = parts.slice(2).join('.')
     storeKey = `loadpoints.${storeIndex}.${field}`
   } else if (parts[0] === 'site' && parts.length >= 2) {
-    // site/pvPower -> pvPower (evcc store is flat for site-level data)
     storeKey = parts.slice(1).join('.')
   } else {
-    // startupCompleted -> startupCompleted
     storeKey = parts.join('.')
   }
 
-  return { [storeKey]: parsePayload(payload) }
+  try {
+    return { [storeKey]: parsePayload(payload) }
+  } catch (e) {
+    console.warn(`Malformed MQTT payload on ${topic}:`, payload, e)
+    return null
+  }
 }
 
 export function parsePayload(raw: string): unknown {
