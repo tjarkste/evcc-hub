@@ -18,13 +18,13 @@ type mqttAuthHandler struct {
 func (h *mqttAuthHandler) MQTTAuth(c *gin.Context) {
 	var req models.MQTTAuthRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	_, err := h.db.AuthenticateMQTT(req.Username, req.Password)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"error": "invalid mqtt credentials"})
+		apiError(c, http.StatusForbidden, "mqtt_auth_failed", "forbidden")
 		return
 	}
 
@@ -37,18 +37,18 @@ func (h *mqttAuthHandler) MQTTAuth(c *gin.Context) {
 func (h *mqttAuthHandler) MQTTACL(c *gin.Context) {
 	var req models.MQTTACLRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	authResult, err := h.db.LookupMQTTCredentialByUsername(req.Username)
 	if err != nil {
-		c.JSON(http.StatusForbidden, gin.H{"error": "unknown user"})
+		apiError(c, http.StatusForbidden, "mqtt_auth_failed", "forbidden")
 		return
 	}
 
 	if !CheckACL(authResult.CredType, authResult.TopicPrefix, authResult.UserID, req.Topic, req.Acc) {
-		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		apiError(c, http.StatusForbidden, "mqtt_auth_failed", "forbidden")
 		return
 	}
 

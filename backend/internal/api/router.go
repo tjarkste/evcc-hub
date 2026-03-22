@@ -10,9 +10,10 @@ import (
 
 // Config holds the runtime configuration passed to the router.
 type Config struct {
-	JWTSecret  string
-	DevMode    bool
-	CORSOrigin string // Allowed origin in production (e.g. "https://cloud.evcc.io")
+	JWTSecret      string
+	DevMode        bool
+	CORSOrigin     string // Allowed origin in production (e.g. "https://cloud.evcc.io")
+	MQTTBrokerAddr string // optional, for health check
 }
 
 // NewRouter builds and returns the gin engine with all routes registered.
@@ -32,9 +33,8 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 	}
 
 	// Health check.
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	hh := &healthHandler{db: db, mqttBrokerAddr: cfg.MQTTBrokerAddr}
+	r.GET("/health", hh.Health)
 
 	ah := &authHandler{db: db, jwtSecret: cfg.JWTSecret}
 	mh := &mqttAuthHandler{db: db}

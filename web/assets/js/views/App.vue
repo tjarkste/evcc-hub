@@ -1,14 +1,23 @@
 <template>
 	<div class="app">
-		<router-view
-			v-if="showRoutes"
-			:notifications="notifications"
-			:offline="offline"
-		></router-view>
+		<ErrorBoundary section="Dashboard">
+			<router-view
+				v-if="showRoutes"
+				:notifications="notifications"
+				:offline="offline"
+			></router-view>
+		</ErrorBoundary>
+		<ConnectionStatus />
 
-		<GlobalSettingsModal v-bind="globalSettingsProps" />
-		<BatterySettingsModal v-if="batteryModalAvailabe" v-bind="batterySettingsProps" />
-		<ForecastModal v-bind="forecastModalProps" />
+		<ErrorBoundary section="Settings">
+			<GlobalSettingsModal v-bind="globalSettingsProps" />
+		</ErrorBoundary>
+		<ErrorBoundary section="Battery">
+			<BatterySettingsModal v-if="batteryModalAvailabe" v-bind="batterySettingsProps" />
+		</ErrorBoundary>
+		<ErrorBoundary section="Forecast">
+			<ForecastModal v-bind="forecastModalProps" />
+		</ErrorBoundary>
 		<HelpModal />
 		<PasswordModal />
 		<LoginModal v-bind="loginModalProps" />
@@ -25,9 +34,12 @@ import OfflineIndicator from "../components/Footer/OfflineIndicator.vue";
 import PasswordModal from "../components/Auth/PasswordModal.vue";
 import LoginModal from "../components/Auth/LoginModal.vue";
 import HelpModal from "../components/HelpModal.vue";
+import ConnectionStatus from "../components/ConnectionStatus.vue";
+import ErrorBoundary from "../components/ErrorBoundary.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
-import { connectMqtt, disconnectMqtt, subscribeSite } from "../services/mqtt";
+import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
+import { loadStateCache } from "../services/stateCache";
 import { getStoredAuth, scheduleTokenRefresh, stopTokenRefresh } from "../services/auth";
 import { fetchSites, getSelectedSiteId, setSelectedSiteId } from "../services/sites";
 import type { Site } from "../services/sites";
@@ -42,6 +54,8 @@ export default defineComponent({
 		PasswordModal,
 		LoginModal,
 		OfflineIndicator,
+		ConnectionStatus,
+		ErrorBoundary,
 	},
 	mixins: [collector],
 	props: {
@@ -104,16 +118,21 @@ export default defineComponent({
 			return;
 		}
 
+		// Restore cached state while waiting for live MQTT data
+		const cached = loadStateCache();
+		if (cached) {
+			store.update(cached);
+		}
+
 		scheduleTokenRefresh();
 
-		// Connect MQTT with user-level credentials (no site subscription yet)
 		connectMqtt({
 			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://mqtt.evcc-cloud.de/mqtt',
 			username: auth.mqttUsername,
 			password: auth.mqttPassword,
 		});
 
-		// Fetch sites and subscribe to selected or first site
+		// Fetch sites and subscribe; fall back to cached topic if backend is unreachable
 		try {
 			this.sites = await fetchSites();
 			if (this.sites.length > 0) {
@@ -125,6 +144,11 @@ export default defineComponent({
 			}
 		} catch (e) {
 			console.error('Failed to fetch sites:', e);
+			const cachedPrefix = getCachedTopicPrefix();
+			if (cachedPrefix) {
+				console.log('Using cached topic prefix:', cachedPrefix);
+				subscribeSite(cachedPrefix);
+			}
 		}
 	},
 	unmounted() {

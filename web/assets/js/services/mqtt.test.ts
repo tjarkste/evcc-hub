@@ -1,12 +1,12 @@
 import { describe, test, expect } from 'vitest'
-import { mqttToStoreUpdate, parsePayload } from './mqtt'
+import { mqttToStoreUpdate, parsePayload, calculateBackoff } from './mqtt'
 
 describe('mqttToStoreUpdate', () => {
   test('site topic maps correctly', () => {
     const result = mqttToStoreUpdate(
       'user/abc/evcc/site/pvPower', '6200', 'user/abc/evcc'
     )
-    expect(result).toEqual({ 'site.pvPower': 6200 })
+    expect(result).toEqual({ pvPower: 6200 })
   })
 
   test('loadpoint index shifts from 1-based to 0-based', () => {
@@ -27,6 +27,39 @@ describe('mqttToStoreUpdate', () => {
     const result = mqttToStoreUpdate(
       'user/abc/evcc/loadpoints/1/mode/set', 'pv', 'user/abc/evcc'
     )
+    expect(result).toBeNull()
+  })
+})
+
+describe('calculateBackoff', () => {
+  test('first attempt is ~1000ms', () => {
+    const delay = calculateBackoff(0)
+    expect(delay).toBeGreaterThanOrEqual(1000)
+    expect(delay).toBeLessThanOrEqual(1500)
+  })
+
+  test('second attempt is ~2000ms', () => {
+    const delay = calculateBackoff(1)
+    expect(delay).toBeGreaterThanOrEqual(2000)
+    expect(delay).toBeLessThanOrEqual(3000)
+  })
+
+  test('caps at 30000ms', () => {
+    const delay = calculateBackoff(10)
+    expect(delay).toBeGreaterThanOrEqual(30000)
+    expect(delay).toBeLessThanOrEqual(45000)
+  })
+
+  test('third attempt is ~4000ms', () => {
+    const delay = calculateBackoff(2)
+    expect(delay).toBeGreaterThanOrEqual(4000)
+    expect(delay).toBeLessThanOrEqual(6000)
+  })
+})
+
+describe('malformed payload handling', () => {
+  test('returns null and does not throw for topics with malformed prefix', () => {
+    const result = mqttToStoreUpdate('completely/wrong/topic', '123', 'user/abc/evcc')
     expect(result).toBeNull()
   })
 })

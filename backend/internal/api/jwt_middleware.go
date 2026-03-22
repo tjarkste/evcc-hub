@@ -14,14 +14,16 @@ func JWTAuthMiddleware(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		header := c.GetHeader("Authorization")
 		if header == "" || !strings.HasPrefix(header, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid authorization header"})
+			apiError(c, http.StatusUnauthorized, "missing_token", "authorization header required")
+			c.Abort()
 			return
 		}
 
 		tokenString := strings.TrimPrefix(header, "Bearer ")
 		claims, err := auth.ValidateToken(tokenString, jwtSecret)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			apiError(c, http.StatusUnauthorized, "invalid_token", "invalid token")
+			c.Abort()
 			return
 		}
 

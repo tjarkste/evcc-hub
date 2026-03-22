@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"evcc-cloud/backend/internal/models"
@@ -19,7 +20,7 @@ const maxSitesPerUser = 10
 func (h *siteHandler) CreateSite(c *gin.Context) {
 	var req models.CreateSiteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
@@ -27,17 +28,19 @@ func (h *siteHandler) CreateSite(c *gin.Context) {
 
 	count, err := h.db.CountSitesByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not check site limit"})
+		log.Printf("CountSitesByUserID error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_creation_failed", "could not create site")
 		return
 	}
 	if count >= maxSitesPerUser {
-		c.JSON(http.StatusConflict, gin.H{"error": "maximum number of sites reached"})
+		apiError(c, http.StatusConflict, "site_limit_reached", "maximum 10 sites allowed")
 		return
 	}
 
 	site, err := h.db.CreateSite(userID, req.Name, req.Timezone)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not create site"})
+		log.Printf("CreateSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_creation_failed", "could not create site")
 		return
 	}
 
@@ -49,7 +52,8 @@ func (h *siteHandler) ListSites(c *gin.Context) {
 	userID := c.GetString("userID")
 	sites, err := h.db.GetSitesByUserID(userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not fetch sites"})
+		log.Printf("GetSitesByUserID error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_fetch_failed", "could not fetch sites")
 		return
 	}
 	if sites == nil {
@@ -69,17 +73,18 @@ func (h *siteHandler) UpdateSite(c *gin.Context) {
 
 	var req models.UpdateSiteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	site, err := h.db.UpdateSite(siteID, userID, req.Name, req.Timezone)
 	if err != nil {
 		if err.Error() == "site not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "site not found"})
+			apiError(c, http.StatusNotFound, "site_not_found", "site not found or not owned by user")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not update site"})
+		log.Printf("UpdateSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_update_failed", "could not update site")
 		return
 	}
 
@@ -94,10 +99,11 @@ func (h *siteHandler) DeleteSite(c *gin.Context) {
 
 	if err := h.db.DeleteSite(siteID, userID); err != nil {
 		if err.Error() == "site not found" {
-			c.JSON(http.StatusNotFound, gin.H{"error": "site not found"})
+			apiError(c, http.StatusNotFound, "site_not_found", "site not found or not owned by user")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not delete site"})
+		log.Printf("DeleteSite error: %v", err)
+		apiError(c, http.StatusInternalServerError, "site_delete_failed", "could not delete site")
 		return
 	}
 

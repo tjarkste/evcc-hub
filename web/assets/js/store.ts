@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import type { State } from "./types/evcc";
+import { ConnectionState } from "./types/evcc";
 import { convertToUiLoadpoints } from "./uiLoadpoints";
 import { useDebouncedComputed } from "./utils/useDebouncedComputed";
 import settings from "./settings";
@@ -29,6 +30,8 @@ function setProperty(obj: object, props: string[], value: any) {
 
 const initialState: State = {
   offline: false,
+  connectionState: ConnectionState.OFFLINE,
+  lastDataAt: null,
   loadpoints: [],
   vehicles: {},
   forecast: {},
@@ -70,7 +73,7 @@ const store: Store = {
     console.log("resetting state");
     // reset to initial state
     Object.keys(initialState).forEach(function (k) {
-      if (k === "offline") return;
+      if (k === "offline" || k === "connectionState" || k === "lastDataAt") return;
 
       // @ts-expect-error no-explicit-any
       if (Array.isArray(initialState[k])) {

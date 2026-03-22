@@ -42,6 +42,11 @@ func (db *DB) Close() error {
 	return db.conn.Close()
 }
 
+// Ping verifies the database connection is alive.
+func (db *DB) Ping() error {
+	return db.conn.Ping()
+}
+
 func (db *DB) migrate() error {
 	// Original users table
 	_, err := db.conn.Exec(`

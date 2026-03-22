@@ -1,7 +1,9 @@
 package api
 
 import (
+	"log"
 	"net/http"
+	"strings"
 
 	"evcc-cloud/backend/internal/auth"
 	"evcc-cloud/backend/internal/models"
@@ -19,31 +21,35 @@ type authHandler struct {
 func (h *authHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	user, err := h.db.CreateUser(req.Email, req.Password)
 	if err != nil {
-		// Duplicate email results in a UNIQUE constraint error.
-		c.JSON(http.StatusConflict, gin.H{"error": "email already registered"})
+		if strings.Contains(err.Error(), "UNIQUE constraint") {
+			apiError(c, http.StatusConflict, "duplicate_email", "email already registered")
+		} else {
+			log.Printf("CreateUser error: %v", err)
+			apiError(c, http.StatusInternalServerError, "registration_failed", "could not create account")
+		}
 		return
 	}
 
 	token, err := auth.GenerateToken(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		apiError(c, http.StatusInternalServerError, "token_generation_failed", "could not generate token")
 		return
 	}
 
 	rawRefresh, err := auth.GenerateRefreshToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_failed", "could not generate refresh token")
 		return
 	}
 	refreshHash := auth.HashRefreshToken(rawRefresh)
 	if _, err := h.db.CreateRefreshToken(user.ID, refreshHash); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not store refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_store_failed", "could not store refresh token")
 		return
 	}
 
@@ -69,30 +75,30 @@ func (h *authHandler) Register(c *gin.Context) {
 func (h *authHandler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	user, err := h.db.AuthenticateUser(req.Email, req.Password)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		apiError(c, http.StatusUnauthorized, "invalid_credentials", "invalid credentials")
 		return
 	}
 
 	token, err := auth.GenerateToken(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		apiError(c, http.StatusInternalServerError, "token_generation_failed", "could not generate token")
 		return
 	}
 
 	rawRefresh, err := auth.GenerateRefreshToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_failed", "could not generate refresh token")
 		return
 	}
 	refreshHash := auth.HashRefreshToken(rawRefresh)
 	if _, err := h.db.CreateRefreshToken(user.ID, refreshHash); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not store refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_store_failed", "could not store refresh token")
 		return
 	}
 
@@ -111,14 +117,14 @@ func (h *authHandler) Login(c *gin.Context) {
 func (h *authHandler) Refresh(c *gin.Context) {
 	var req models.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 
 	oldHash := auth.HashRefreshToken(req.RefreshToken)
 	rt, err := h.db.GetRefreshTokenByHash(oldHash)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired refresh token"})
+		apiError(c, http.StatusUnauthorized, "invalid_refresh_token", "invalid or expired refresh token")
 		return
 	}
 
@@ -127,24 +133,24 @@ func (h *authHandler) Refresh(c *gin.Context) {
 
 	user, err := h.db.GetUserByID(rt.UserID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not found"})
+		apiError(c, http.StatusUnauthorized, "user_not_found", "user not found")
 		return
 	}
 
 	accessToken, err := auth.GenerateToken(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
+		apiError(c, http.StatusInternalServerError, "token_generation_failed", "could not generate token")
 		return
 	}
 
 	newRawToken, err := auth.GenerateRefreshToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_failed", "could not generate refresh token")
 		return
 	}
 	newHash := auth.HashRefreshToken(newRawToken)
 	if _, err := h.db.CreateRefreshToken(user.ID, newHash); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "could not store refresh token"})
+		apiError(c, http.StatusInternalServerError, "refresh_token_store_failed", "could not store refresh token")
 		return
 	}
 
@@ -160,7 +166,7 @@ func (h *authHandler) Refresh(c *gin.Context) {
 func (h *authHandler) Logout(c *gin.Context) {
 	var req models.LogoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		apiError(c, http.StatusBadRequest, "invalid_input", err.Error())
 		return
 	}
 

@@ -27,6 +27,7 @@ func main() {
 	env := os.Getenv("ENV")
 	devMode := env == "development"
 	corsOrigin := os.Getenv("CORS_ORIGIN")
+	mqttBrokerAddr := os.Getenv("MQTT_BROKER_ADDR")
 
 	db, err := storage.Open(dbPath)
 	if err != nil {
@@ -40,9 +41,10 @@ func main() {
 	}
 
 	router := api.NewRouter(db, api.Config{
-		JWTSecret:  jwtSecret,
-		DevMode:    devMode,
-		CORSOrigin: corsOrigin,
+		JWTSecret:      jwtSecret,
+		DevMode:        devMode,
+		CORSOrigin:     corsOrigin,
+		MQTTBrokerAddr: mqttBrokerAddr,
 	})
 
 	srv := &http.Server{
