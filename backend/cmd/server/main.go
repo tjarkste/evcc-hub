@@ -21,6 +21,7 @@ func main() {
 
 	env := os.Getenv("ENV")
 	devMode := env == "development"
+	corsOrigin := os.Getenv("CORS_ORIGIN")
 
 	db, err := storage.Open(dbPath)
 	if err != nil {
@@ -34,8 +35,9 @@ func main() {
 	}
 
 	router := api.NewRouter(db, api.Config{
-		JWTSecret: jwtSecret,
-		DevMode:   devMode,
+		JWTSecret:  jwtSecret,
+		DevMode:    devMode,
+		CORSOrigin: corsOrigin,
 	})
 
 	log.Printf("evcc-cloud backend starting on :%s (dev=%v)", port, devMode)
