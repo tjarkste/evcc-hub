@@ -16,6 +16,9 @@ web/playwright-report/
 deploy/mosquitto/certs/
 deploy/nginx/ssl/
 
+# Worktrees
+.worktrees/
+
 # OS
 .DS_Store
 *.swp
