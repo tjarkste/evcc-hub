@@ -1,8 +1,14 @@
 <template>
 	<div class="app">
 		<ErrorBoundary section="Dashboard">
+			<SiteOverview
+				v-if="$route.path === '/overview'"
+				:sites="sites"
+				:selected-site-id="selectedSiteId"
+				@select-site="handleSelectSite"
+			/>
 			<router-view
-				v-if="showRoutes"
+				v-else-if="showRoutes"
 				:notifications="notifications"
 				:offline="offline"
 			></router-view>
@@ -42,6 +48,7 @@ import HelpModal from "../components/HelpModal.vue";
 import ConnectionStatus from "../components/ConnectionStatus.vue";
 import ErrorBoundary from "../components/ErrorBoundary.vue";
 import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
+import SiteOverview from "../views/SiteOverview.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
@@ -63,6 +70,7 @@ export default defineComponent({
 		ConnectionStatus,
 		ErrorBoundary,
 		SiteSwitcher,
+		SiteOverview,
 	},
 	mixins: [collector],
 	props: {
@@ -149,6 +157,10 @@ export default defineComponent({
 				this.selectedSiteId = site.id;
 				setSelectedSiteId(site.id);
 				subscribeSite(site.topicPrefix);
+				// Multi-site users land on /overview; single-site users go straight to /
+				if (this.sites.length > 1 && this.$route.path === '/') {
+					this.$router.push('/overview');
+				}
 			}
 		} catch (e) {
 			console.error('Failed to fetch sites:', e);
@@ -174,6 +186,15 @@ export default defineComponent({
 			store.reset();
 			store.state.lastDataAt = null;
 			subscribeSite(site.topicPrefix);
+		},
+		handleSelectSite(site: Site) {
+			this.selectedSiteId = site.id;
+			setSelectedSiteId(site.id);
+			this.hasCachedState = false;
+			store.reset();
+			store.state.lastDataAt = null;
+			subscribeSite(site.topicPrefix);
+			this.$router.push('/');
 		},
 	},
 });
