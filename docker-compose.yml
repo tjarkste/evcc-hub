@@ -11,8 +11,7 @@ services:
 
   backend:
     build: ./backend
-    ports:
-      - "8080:8080"
+    # No host port binding — nginx proxies internally via Docker network
     env_file: .env
     environment:
       MQTT_BROKER_ADDR: "mosquitto:1883"
