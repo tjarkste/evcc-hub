@@ -60,6 +60,7 @@ export function stringifyQuery(query?: Record<string, any>): string {
 
 const LoginView = () => import("./views/LoginView.vue");
 const SiteManager = () => import("./views/SiteManager.vue");
+const SiteOverview = () => import("./views/SiteOverview.vue");
 
 export default function setupRouter(i18n: VueI18nInstance) {
   const router = createRouter({
@@ -67,6 +68,8 @@ export default function setupRouter(i18n: VueI18nInstance) {
     stringifyQuery,
     routes: [
       { path: "/login", component: LoginView, meta: { noAuth: true } },
+      // Stub route — App.vue renders SiteOverview inline via v-if; route must exist for $router.push('/overview') to resolve
+      { path: "/overview", component: SiteOverview },
       { path: "/sites", component: SiteManager },
       {
         path: "/",

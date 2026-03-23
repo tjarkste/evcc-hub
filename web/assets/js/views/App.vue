@@ -1,13 +1,25 @@
 <template>
 	<div class="app">
 		<ErrorBoundary section="Dashboard">
+			<WaitingForData v-if="waitingForData" />
+			<SiteOverview
+				v-else-if="$route.path === '/overview'"
+				:sites="sites"
+				:selected-site-id="selectedSiteId"
+				@select-site="handleSelectSite"
+			/>
 			<router-view
-				v-if="showRoutes"
+				v-else-if="showRoutes"
 				:notifications="notifications"
 				:offline="offline"
 			></router-view>
 		</ErrorBoundary>
 		<ConnectionStatus />
+		<SiteSwitcher
+			:sites="sites"
+			:selected-site-id="selectedSiteId"
+			@site-changed="handleSiteChange"
+		/>
 
 		<ErrorBoundary section="Settings">
 			<GlobalSettingsModal v-bind="globalSettingsProps" />
@@ -36,6 +48,9 @@ import LoginModal from "../components/Auth/LoginModal.vue";
 import HelpModal from "../components/HelpModal.vue";
 import ConnectionStatus from "../components/ConnectionStatus.vue";
 import ErrorBoundary from "../components/ErrorBoundary.vue";
+import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
+import SiteOverview from "../views/SiteOverview.vue";
+import WaitingForData from "../components/WaitingForData.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
@@ -56,6 +71,9 @@ export default defineComponent({
 		OfflineIndicator,
 		ConnectionStatus,
 		ErrorBoundary,
+		SiteSwitcher,
+		SiteOverview,
+		WaitingForData,
 	},
 	mixins: [collector],
 	props: {
@@ -65,6 +83,7 @@ export default defineComponent({
 	data: () => {
 		return {
 			authNotConfigured: false,
+			hasCachedState: false,
 			sites: [] as Site[],
 			selectedSiteId: null as string | null,
 		};
@@ -102,6 +121,11 @@ export default defineComponent({
 		loginModalProps() {
 			return this.collectProps(LoginModal, this.state);
 		},
+		waitingForData(): boolean {
+			if (this.hasCachedState) return false;
+			if (this.$route.path === '/login' || this.$route.path === '/overview') return false;
+			return store.state.lastDataAt === null;
+		},
 	},
 	watch: {
 		version(now, prev) {
@@ -122,6 +146,7 @@ export default defineComponent({
 		const cached = loadStateCache();
 		if (cached) {
 			store.update(cached);
+			this.hasCachedState = true;
 		}
 
 		scheduleTokenRefresh();
@@ -141,6 +166,10 @@ export default defineComponent({
 				this.selectedSiteId = site.id;
 				setSelectedSiteId(site.id);
 				subscribeSite(site.topicPrefix);
+				// Multi-site users land on /overview; single-site users go straight to /
+				if (this.sites.length > 1 && this.$route.path === '/') {
+					this.$router.push('/overview');
+				}
 			}
 		} catch (e) {
 			console.error('Failed to fetch sites:', e);
@@ -158,6 +187,23 @@ export default defineComponent({
 	methods: {
 		reload() {
 			window.location.reload();
+		},
+		handleSiteChange(site: Site) {
+			this.selectedSiteId = site.id;
+			setSelectedSiteId(site.id);
+			this.hasCachedState = false;
+			store.reset();
+			store.state.lastDataAt = null;
+			subscribeSite(site.topicPrefix);
+		},
+		handleSelectSite(site: Site) {
+			this.selectedSiteId = site.id;
+			setSelectedSiteId(site.id);
+			this.hasCachedState = false;
+			store.reset();
+			store.state.lastDataAt = null;
+			subscribeSite(site.topicPrefix);
+			this.$router.push('/');
 		},
 	},
 });
