@@ -72,7 +72,7 @@ export default defineComponent({
 	data: () => {
 		return {
 			authNotConfigured: false,
-			hasCachedState: false as boolean,
+			hasCachedState: false,
 			sites: [] as Site[],
 			selectedSiteId: null as string | null,
 		};
