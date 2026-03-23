@@ -24,6 +24,7 @@
 							class="btn btn-primary mt-auto"
 							@click="$emit('select-site', site)"
 							:data-testid="`view-site-${site.id}`"
+							:aria-label="`${site.name} anzeigen`"
 						>
 							Anzeigen
 						</button>
