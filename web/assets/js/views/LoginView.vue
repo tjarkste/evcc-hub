@@ -75,13 +75,71 @@
 
       <!-- Onboarding nach Registrierung -->
       <div v-else-if="mode === 'onboarding'">
-        <h2 class="text-center mb-4">Einrichtung</h2>
-        <p>Füge diese Zeilen in deine <code>evcc.yaml</code> ein:</p>
-        <pre class="bg-dark text-light p-3 rounded" style="font-size: 0.85em;">{{ mqttConfig }}</pre>
-        <button @click="copyConfig" class="btn btn-outline-secondary btn-sm mb-3">
-          {{ copied ? 'Kopiert!' : 'Kopieren' }}
-        </button>
-        <button @click="goToDashboard" class="btn btn-primary w-100" data-test="to-dashboard-btn">
+        <h2 class="text-center mb-1">Konto erstellt!</h2>
+        <p class="text-center text-muted mb-4">Verbinde jetzt deine evcc-Instanz.</p>
+
+        <!-- Step 1 -->
+        <div class="d-flex gap-3 mb-3">
+          <div
+            class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center flex-shrink-0"
+            style="width:2rem;height:2rem;font-size:0.85rem;"
+          >1</div>
+          <div>
+            <p class="mb-0 fw-semibold">evcc installiert?</p>
+            <p class="text-muted small mb-0">
+              Falls noch nicht:
+              <a href="https://docs.evcc.io/docs/installation/linux" target="_blank" rel="noopener">
+                evcc installieren →
+              </a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="d-flex gap-3 mb-3">
+          <div
+            class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+            style="width:2rem;height:2rem;font-size:0.85rem;"
+          >2</div>
+          <div class="w-100">
+            <p class="mb-1 fw-semibold">MQTT-Konfiguration hinzufügen</p>
+            <p class="text-muted small mb-2">
+              Füge diese Zeilen in deine <code>evcc.yaml</code> ein:
+            </p>
+            <pre
+              class="bg-dark text-light p-2 rounded mb-2"
+              style="font-size: 0.8em;"
+              data-test="mqtt-config"
+            >{{ mqttConfig }}</pre>
+            <button
+              @click="copyConfig"
+              class="btn btn-outline-secondary btn-sm"
+              data-test="copy-config-btn"
+            >
+              {{ copied ? '✓ Kopiert!' : 'Kopieren' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="d-flex gap-3 mb-4">
+          <div
+            class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
+            style="width:2rem;height:2rem;font-size:0.85rem;"
+          >3</div>
+          <div>
+            <p class="mb-0 fw-semibold">evcc neu starten</p>
+            <p class="text-muted small mb-0">
+              <code>sudo systemctl restart evcc</code>
+            </p>
+          </div>
+        </div>
+
+        <button
+          @click="goToDashboard"
+          class="btn btn-primary w-100"
+          data-test="to-dashboard-btn"
+        >
           Weiter zum Dashboard
         </button>
       </div>
