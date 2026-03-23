@@ -1,8 +1,9 @@
 <template>
 	<div class="app">
 		<ErrorBoundary section="Dashboard">
+			<WaitingForData v-if="waitingForData" />
 			<SiteOverview
-				v-if="$route.path === '/overview'"
+				v-else-if="$route.path === '/overview'"
 				:sites="sites"
 				:selected-site-id="selectedSiteId"
 				@select-site="handleSelectSite"
@@ -49,6 +50,7 @@ import ConnectionStatus from "../components/ConnectionStatus.vue";
 import ErrorBoundary from "../components/ErrorBoundary.vue";
 import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
 import SiteOverview from "../views/SiteOverview.vue";
+import WaitingForData from "../components/WaitingForData.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
@@ -71,6 +73,7 @@ export default defineComponent({
 		ErrorBoundary,
 		SiteSwitcher,
 		SiteOverview,
+		WaitingForData,
 	},
 	mixins: [collector],
 	props: {
@@ -118,6 +121,11 @@ export default defineComponent({
 		loginModalProps() {
 			return this.collectProps(LoginModal, this.state);
 		},
+		waitingForData(): boolean {
+			if (this.hasCachedState) return false;
+			if (this.$route.path === '/login' || this.$route.path === '/overview') return false;
+			return store.state.lastDataAt === null;
+		},
 	},
 	watch: {
 		version(now, prev) {
@@ -138,6 +146,7 @@ export default defineComponent({
 		const cached = loadStateCache();
 		if (cached) {
 			store.update(cached);
+			this.hasCachedState = true;
 		}
 
 		scheduleTokenRefresh();
