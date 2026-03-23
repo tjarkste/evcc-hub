@@ -8,6 +8,11 @@
 			></router-view>
 		</ErrorBoundary>
 		<ConnectionStatus />
+		<SiteSwitcher
+			:sites="sites"
+			:selected-site-id="selectedSiteId"
+			@site-changed="handleSiteChange"
+		/>
 
 		<ErrorBoundary section="Settings">
 			<GlobalSettingsModal v-bind="globalSettingsProps" />
@@ -36,6 +41,7 @@ import LoginModal from "../components/Auth/LoginModal.vue";
 import HelpModal from "../components/HelpModal.vue";
 import ConnectionStatus from "../components/ConnectionStatus.vue";
 import ErrorBoundary from "../components/ErrorBoundary.vue";
+import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
@@ -56,6 +62,7 @@ export default defineComponent({
 		OfflineIndicator,
 		ConnectionStatus,
 		ErrorBoundary,
+		SiteSwitcher,
 	},
 	mixins: [collector],
 	props: {
@@ -65,6 +72,7 @@ export default defineComponent({
 	data: () => {
 		return {
 			authNotConfigured: false,
+			hasCachedState: false as boolean,
 			sites: [] as Site[],
 			selectedSiteId: null as string | null,
 		};
@@ -158,6 +166,14 @@ export default defineComponent({
 	methods: {
 		reload() {
 			window.location.reload();
+		},
+		handleSiteChange(site: Site) {
+			this.selectedSiteId = site.id;
+			setSelectedSiteId(site.id);
+			this.hasCachedState = false;
+			store.reset();
+			store.state.lastDataAt = null;
+			subscribeSite(site.topicPrefix);
 		},
 	},
 });
