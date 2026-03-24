@@ -123,7 +123,8 @@ export default defineComponent({
 		},
 		waitingForData(): boolean {
 			if (this.hasCachedState) return false;
-			if (this.$route.path === '/login' || this.$route.path === '/overview') return false;
+			if (this.$route.meta["noAuth"]) return false;
+			if (this.$route.path === '/overview') return false;
 			return store.state.lastDataAt === null;
 		},
 	},
@@ -138,7 +139,9 @@ export default defineComponent({
 	async mounted() {
 		const auth = getStoredAuth();
 		if (!auth) {
-			this.$router.push('/login');
+			if (!this.$route.meta["noAuth"]) {
+				this.$router.push('/login');
+			}
 			return;
 		}
 
