@@ -6,6 +6,7 @@ import (
 	"evcc-cloud/backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 )
 
 // Config holds the runtime configuration passed to the router.
@@ -23,6 +24,7 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 	}
 
 	r := gin.New()
+	r.Use(sentrygin.New(sentrygin.Options{Repanic: true}))
 	r.Use(gin.Recovery())
 	r.Use(SecurityHeaders())
 

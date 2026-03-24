@@ -11,9 +11,25 @@ import (
 
 	"evcc-cloud/backend/internal/api"
 	"evcc-cloud/backend/internal/storage"
+
+	"github.com/getsentry/sentry-go"
 )
 
 func main() {
+	if dsn := os.Getenv("SENTRY_DSN"); dsn != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:         dsn,
+			Environment: os.Getenv("APP_ENV"),
+			BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+				event.User = sentry.User{}
+				return event
+			},
+		}); err != nil {
+			log.Printf("sentry init failed: %v", err)
+		}
+		defer sentry.Flush(2 * time.Second)
+	}
+
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is required")
