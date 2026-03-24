@@ -8,6 +8,7 @@ import setupI18n from "./i18n.ts";
 import { watchThemeChanges } from "./theme.ts";
 import { appDetection, sendToApp } from "./utils/native";
 import type { Notification } from "./types/evcc";
+import * as Sentry from "@sentry/vue";
 
 // lazy load smoothscroll polyfill. mainly for safari < 15.4
 if (!window.CSS.supports("scroll-behavior", "smooth")) {
@@ -67,6 +68,26 @@ const app = createApp(
     },
   })
 );
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    app,
+    dsn: import.meta.env.VITE_SENTRY_DSN as string,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 0,
+    beforeSend(event) {
+      if (event.user) {
+        delete event.user.email;
+        delete event.user.username;
+        delete event.user.ip_address;
+      }
+      if (event.request?.url) {
+        event.request.url = event.request.url.replace(/\/users\/[^/]+/g, "/users/[id]");
+      }
+      return event;
+    },
+  });
+}
 
 const i18n = setupI18n();
 const head = createHead();
