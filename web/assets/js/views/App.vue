@@ -14,7 +14,7 @@
 				:offline="offline"
 			></router-view>
 		</ErrorBoundary>
-		<ConnectionStatus />
+		<ConnectionStatus v-if="!$route.meta['noAuth']" />
 		<SiteSwitcher
 			:sites="sites"
 			:selected-site-id="selectedSiteId"
