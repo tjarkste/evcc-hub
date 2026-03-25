@@ -33,6 +33,7 @@ services:
       - ./web/dist:/usr/share/nginx/html
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot:ro
+      - /opt/evcc-cloud/legal:/opt/evcc-cloud/legal:ro
     depends_on:
       - backend
       - mosquitto
