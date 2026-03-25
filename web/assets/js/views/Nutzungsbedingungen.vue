@@ -1,12 +1,22 @@
 <template>
-  <div class="container py-4">
-    <h1>Nutzungsbedingungen</h1>
-    <!-- Paste content manually -->
-    <p class="text-muted">Inhalt folgt.</p>
-  </div>
+  <div class="container py-4" v-html="content" />
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-export default defineComponent({ name: "Nutzungsbedingungen" });
+import { defineComponent, ref, onMounted } from "vue";
+export default defineComponent({
+  name: "Nutzungsbedingungen",
+  setup() {
+    const content = ref('<p class="text-muted">Lädt...</p>');
+    onMounted(async () => {
+      try {
+        const res = await fetch("/legal/nutzungsbedingungen.html");
+        if (res.ok) content.value = await res.text();
+      } catch {
+        // content bleibt als Fallback
+      }
+    });
+    return { content };
+  },
+});
 </script>
