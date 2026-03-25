@@ -1,6 +1,7 @@
 # Build outputs
 web/dist/
 web/node_modules/
+web/assets/node_modules/
 backend/data.db
 backend/test.db
 
@@ -18,6 +19,9 @@ deploy/nginx/ssl/
 
 # Worktrees
 .worktrees/
+
+# Internal planning docs
+docs/superpowers/
 
 # Claude Code
 .claude/
