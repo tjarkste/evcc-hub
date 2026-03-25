@@ -33,7 +33,7 @@
 		<HelpModal />
 		<PasswordModal />
 		<LoginModal v-bind="loginModalProps" />
-		<OfflineIndicator v-if="$route.path !== '/login'" v-bind="offlineIndicatorProps" />
+		<OfflineIndicator v-if="!$route.meta['noAuth']" v-bind="offlineIndicatorProps" />
 	</div>
 </template>
 
