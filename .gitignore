@@ -19,6 +19,16 @@ deploy/nginx/ssl/
 # Worktrees
 .worktrees/
 
+# Claude Code
+.claude/
+
+# Build cache
+web/tsconfig.tsbuildinfo
+web/asset-stats.html
+
+# Local environment
+*.env.local
+
 # OS
 .DS_Store
 *.swp

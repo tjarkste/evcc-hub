@@ -155,7 +155,7 @@ export default defineComponent({
 		scheduleTokenRefresh();
 
 		connectMqtt({
-			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://mqtt.evcc-cloud.de/mqtt',
+			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://mqtt.evcc-hub.de/mqtt',
 			username: auth.mqttUsername,
 			password: auth.mqttPassword,
 		});

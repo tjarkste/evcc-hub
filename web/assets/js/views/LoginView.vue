@@ -188,7 +188,7 @@ export default defineComponent({
         const site = auth.defaultSite
         if (site) {
           this.mqttConfig = `mqtt:
-  broker: tls://mqtt.evcc-cloud.de:8883
+  broker: tls://mqtt.evcc-hub.de:8883
   topic: ${site.topicPrefix}
   user: ${site.mqttUsername}
   password: "${site.mqttPassword}"`
