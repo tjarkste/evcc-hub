@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"evcc-cloud/backend/internal/storage"
@@ -11,10 +12,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func setupHealthTestDB(t *testing.T) *storage.DB {
+	t.Helper()
+	databaseURL := os.Getenv("TEST_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub_test?sslmode=disable"
+	}
+	db, err := storage.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open test db: %v", err)
+	}
+	db.TruncateAll()
+	t.Cleanup(func() {
+		db.TruncateAll()
+		db.Close()
+	})
+	return db
+}
+
 func TestHealthHandler_Healthy(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db, _ := storage.Open(t.TempDir() + "/test.db")
-	defer db.Close()
+	db := setupHealthTestDB(t)
 
 	h := &healthHandler{db: db}
 	r := gin.New()
@@ -42,7 +60,14 @@ func TestHealthHandler_Healthy(t *testing.T) {
 
 func TestHealthHandler_DBClosed(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db, _ := storage.Open(t.TempDir() + "/test.db")
+	databaseURL := os.Getenv("TEST_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub_test?sslmode=disable"
+	}
+	db, err := storage.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open test db: %v", err)
+	}
 	db.Close()
 
 	h := &healthHandler{db: db}

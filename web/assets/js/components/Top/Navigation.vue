@@ -64,6 +64,12 @@
 				</button>
 			</li>
 			<li>
+				<router-link class="dropdown-item" to="/settings" active-class="active">
+					Profil & Einstellungen
+				</router-link>
+			</li>
+			<li><hr class="dropdown-divider" /></li>
+			<li>
 				<router-link
 					class="dropdown-item"
 					to="/config"

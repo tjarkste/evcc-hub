@@ -11,6 +11,7 @@ type User struct {
 	MQTTPassword string    `json:"mqttPassword"`
 	TopicPrefix  string    `json:"topicPrefix"`
 	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 // RefreshToken represents a hashed refresh token stored in the database.

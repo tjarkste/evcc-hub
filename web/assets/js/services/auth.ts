@@ -88,8 +88,13 @@ export function stopTokenRefresh(): void {
 }
 
 export function getStoredAuth(): AuthData | null {
-  const stored = localStorage.getItem(AUTH_KEY)
-  return stored ? JSON.parse(stored) : null
+  try {
+    const raw = localStorage.getItem(AUTH_KEY)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
 }
 
 export function getAuthToken(): string | null {

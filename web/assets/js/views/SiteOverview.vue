@@ -20,14 +20,23 @@
 						<p class="card-text text-muted small flex-grow-1">
 							{{ site.topicPrefix }}
 						</p>
-						<button
-							class="btn btn-primary mt-auto"
-							@click="$emit('select-site', site)"
-							:data-testid="`view-site-${site.id}`"
-							:aria-label="`${site.name} anzeigen`"
-						>
-							Anzeigen
-						</button>
+						<div class="d-flex gap-2 mt-auto">
+							<button
+								class="btn btn-primary flex-grow-1"
+								@click="$emit('select-site', site)"
+								:data-testid="`view-site-${site.id}`"
+								:aria-label="`${site.name} anzeigen`"
+							>
+								Anzeigen
+							</button>
+							<button
+								class="btn btn-outline-secondary"
+								:aria-label="`MQTT-Zugangsdaten für ${site.name}`"
+								@click="openCredentials(site)"
+							>
+								MQTT
+							</button>
+						</div>
 					</div>
 					<div v-if="site.id === selectedSiteId" class="card-footer text-muted small">
 						Aktiv
@@ -41,15 +50,25 @@
 				Standorte verwalten
 			</router-link>
 		</div>
+
+		<SiteCredentialsModal
+			:siteId="credentialsSiteId"
+			:siteName="credentialsSiteName"
+		/>
 	</div>
 </template>
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
+import Modal from 'bootstrap/js/dist/modal'
 import type { Site } from '../services/sites'
+import SiteCredentialsModal from '../components/SiteCredentialsModal.vue'
 
 export default defineComponent({
 	name: 'SiteOverview',
+	components: {
+		SiteCredentialsModal,
+	},
 	props: {
 		sites: {
 			type: Array as PropType<Site[]>,
@@ -61,5 +80,23 @@ export default defineComponent({
 		},
 	},
 	emits: ['select-site'],
+	data() {
+		return {
+			credentialsSiteId: null as string | null,
+			credentialsSiteName: '',
+		}
+	},
+	methods: {
+		openCredentials(site: Site) {
+			this.credentialsSiteId = site.id
+			this.credentialsSiteName = site.name
+			this.$nextTick(() => {
+				const el = document.getElementById('siteCredentialsModal')
+				if (el) {
+					Modal.getOrCreateInstance(el).show()
+				}
+			})
+		},
+	},
 })
 </script>

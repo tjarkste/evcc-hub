@@ -132,6 +132,23 @@ export default function setupRouter(i18n: VueI18nInstance) {
         beforeEnter: ensureAuth,
         props: true,
       },
+      {
+        path: "/settings",
+        component: () => import("./views/SettingsView.vue"),
+      },
+      {
+        path: "/:pathMatch(.*)*",
+        redirect: () => {
+          try {
+            if (localStorage.getItem("evcc-cloud-auth")) {
+              return "/";
+            }
+          } catch {
+            // localStorage may be restricted
+          }
+          return "/login";
+        },
+      },
     ],
   });
   router.beforeEach(async () => {
