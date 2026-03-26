@@ -5,6 +5,12 @@
       <!-- Login-Formular -->
       <div v-if="mode === 'login'">
         <h2 class="text-center mb-4">⚡ evcc Hub</h2>
+        <p class="text-center text-muted small mb-4">
+          Dein evcc-Dashboard, von überall erreichbar.<br>
+          <a href="https://github.com/tjarkste/evcc-hub" target="_blank" rel="noopener" class="text-primary">
+            Open Source auf GitHub →
+          </a>
+        </p>
         <div v-if="error" class="alert alert-danger">{{ error }}</div>
         <div class="mb-3">
           <input
@@ -40,6 +46,12 @@
       <!-- Registrierungs-Formular -->
       <div v-else-if="mode === 'register'">
         <h2 class="text-center mb-4">⚡ evcc Hub</h2>
+        <p class="text-center text-muted small mb-4">
+          Dein evcc-Dashboard, von überall erreichbar.<br>
+          <a href="https://github.com/tjarkste/evcc-hub" target="_blank" rel="noopener" class="text-primary">
+            Open Source auf GitHub →
+          </a>
+        </p>
         <p class="text-muted text-center">Kostenlosen Account erstellen</p>
         <div v-if="error" class="alert alert-danger">{{ error }}</div>
         <div class="mb-3">
