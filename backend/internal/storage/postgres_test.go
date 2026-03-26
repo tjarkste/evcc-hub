@@ -7,14 +7,18 @@ import (
 
 func setupTestDB(t *testing.T) *DB {
 	t.Helper()
-	path := t.TempDir() + "/test.db"
-	db, err := Open(path)
+	databaseURL := os.Getenv("TEST_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub_test?sslmode=disable"
+	}
+	db, err := Open(databaseURL)
 	if err != nil {
 		t.Fatalf("open test db: %v", err)
 	}
+	db.TruncateAll()
 	t.Cleanup(func() {
+		db.TruncateAll()
 		db.Close()
-		os.Remove(path)
 	})
 	return db
 }

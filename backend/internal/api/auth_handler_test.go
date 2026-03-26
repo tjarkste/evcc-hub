@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"evcc-cloud/backend/internal/auth"
@@ -16,12 +17,20 @@ import (
 func setupAuthTestRouter(t *testing.T) (*gin.Engine, *storage.DB) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
-	db, err := storage.Open(":memory:")
-	if err != nil {
-		t.Fatalf("open db: %v", err)
+	databaseURL := os.Getenv("TEST_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub_test?sslmode=disable"
 	}
-	cfg := Config{JWTSecret: "test-secret", DevMode: true}
-	r := NewRouter(db, cfg)
+	db, err := storage.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open test db: %v", err)
+	}
+	db.TruncateAll()
+	t.Cleanup(func() {
+		db.TruncateAll()
+		db.Close()
+	})
+	r := NewRouter(db, Config{JWTSecret: "test-secret", DevMode: true})
 	return r, db
 }
 

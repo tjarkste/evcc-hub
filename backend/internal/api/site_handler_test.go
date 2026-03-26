@@ -19,14 +19,18 @@ import (
 func setupTestRouter(t *testing.T) (*gin.Engine, *storage.DB, string) {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
-	path := t.TempDir() + "/test.db"
-	db, err := storage.Open(path)
-	if err != nil {
-		t.Fatalf("open db: %v", err)
+	databaseURL := os.Getenv("TEST_DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub_test?sslmode=disable"
 	}
+	db, err := storage.Open(databaseURL)
+	if err != nil {
+		t.Fatalf("open test db: %v", err)
+	}
+	db.TruncateAll()
 	t.Cleanup(func() {
+		db.TruncateAll()
 		db.Close()
-		os.Remove(path)
 	})
 	secret := "test-secret"
 	router := NewRouter(db, Config{JWTSecret: secret, DevMode: true})
