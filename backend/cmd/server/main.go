@@ -37,7 +37,7 @@ func main() {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		log.Fatal("DATABASE_URL environment variable is required")
+		databaseURL = "postgres://evcc:evcc@localhost:5432/evcc_hub?sslmode=disable"
 	}
 
 	env := os.Getenv("ENV")

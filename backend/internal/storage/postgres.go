@@ -60,7 +60,7 @@ func (db *DB) Ping() error {
 func (db *DB) migrate() error {
 	_, err := db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS users (
-			id            TEXT PRIMARY KEY,
+			id            UUID PRIMARY KEY,
 			email         TEXT UNIQUE NOT NULL,
 			password_hash TEXT NOT NULL,
 			mqtt_username TEXT UNIQUE NOT NULL,
@@ -76,8 +76,8 @@ func (db *DB) migrate() error {
 
 	_, err = db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS sites (
-			id            TEXT PRIMARY KEY,
-			user_id       TEXT NOT NULL REFERENCES users(id),
+			id            UUID PRIMARY KEY,
+			user_id       UUID NOT NULL REFERENCES users(id),
 			name          TEXT NOT NULL,
 			mqtt_username TEXT UNIQUE NOT NULL,
 			mqtt_password TEXT NOT NULL,
@@ -93,8 +93,8 @@ func (db *DB) migrate() error {
 
 	_, err = db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS refresh_tokens (
-			id         TEXT PRIMARY KEY,
-			user_id    TEXT NOT NULL REFERENCES users(id),
+			id         UUID PRIMARY KEY,
+			user_id    UUID NOT NULL REFERENCES users(id),
 			token_hash TEXT NOT NULL,
 			expires_at TIMESTAMPTZ NOT NULL,
 			created_at TIMESTAMPTZ NOT NULL
