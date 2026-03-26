@@ -3,6 +3,7 @@ package api
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"evcc-cloud/backend/internal/models"
 	"evcc-cloud/backend/internal/storage"
@@ -108,4 +109,37 @@ func (h *siteHandler) DeleteSite(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+type SiteCredentialsResponse struct {
+	BrokerURL    string `json:"brokerUrl"`
+	BrokerPort   int    `json:"brokerPort"`
+	MQTTUsername string `json:"mqttUsername"`
+	MQTTPassword string `json:"mqttPassword"`
+	TopicPrefix  string `json:"topicPrefix"`
+}
+
+// GetSiteCredentials handles GET /api/sites/:id/credentials.
+func (h *siteHandler) GetSiteCredentials(c *gin.Context) {
+	userID := c.GetString("userID")
+	siteID := c.Param("id")
+
+	site, err := h.db.GetSiteByID(siteID, userID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "site not found"})
+		return
+	}
+
+	brokerURL := os.Getenv("MQTT_BROKER_PUBLIC_URL")
+	if brokerURL == "" {
+		brokerURL = "mqtt.evcc-hub.de"
+	}
+
+	c.JSON(http.StatusOK, SiteCredentialsResponse{
+		BrokerURL:    brokerURL,
+		BrokerPort:   8883,
+		MQTTUsername: site.MQTTUsername,
+		MQTTPassword: site.MQTTPassword,
+		TopicPrefix:  site.TopicPrefix,
+	})
 }

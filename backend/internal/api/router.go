@@ -59,6 +59,13 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 			mqttGroup.POST("/acl", mh.MQTTACL)
 		}
 
+		profileGroup := apiGroup.Group("/auth")
+		profileGroup.Use(JWTAuthMiddleware(cfg.JWTSecret))
+		{
+			profileGroup.GET("/profile", ah.GetProfile)
+			profileGroup.PUT("/password", ah.ChangePassword)
+		}
+
 		sitesGroup := apiGroup.Group("/sites")
 		sitesGroup.Use(JWTAuthMiddleware(cfg.JWTSecret))
 		{
@@ -66,6 +73,7 @@ func NewRouter(db *storage.DB, cfg Config) *gin.Engine {
 			sitesGroup.GET("", sh.ListSites)
 			sitesGroup.PUT("/:id", sh.UpdateSite)
 			sitesGroup.DELETE("/:id", sh.DeleteSite)
+			sitesGroup.GET("/:id/credentials", sh.GetSiteCredentials)
 		}
 	}
 
