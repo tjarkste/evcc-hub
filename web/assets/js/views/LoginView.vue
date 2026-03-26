@@ -120,7 +120,7 @@
             </p>
             <pre
               class="bg-dark text-light p-2 rounded mb-2"
-              style="font-size: 0.8em;"
+              style="font-size: 0.8em; overflow-x: auto;"
               data-test="mqtt-config"
             >{{ mqttConfig }}</pre>
             <button
