@@ -1,6 +1,6 @@
 <template>
 	<div data-testid="offline-indicator" :aria-hidden="!visible">
-		<div v-if="offline || starting" class="modal-backdrop" />
+		<div v-if="offline" class="modal-backdrop" />
 		<div
 			class="fixed-bottom alert d-flex justify-content-center align-items-center mb-0 rounded-0 p-2"
 			:class="{ visible: visible, 'alert-danger': showError, 'alert-secondary': !showError }"
@@ -22,14 +22,6 @@
 			<div v-else-if="offline" class="d-flex align-items-center">
 				<CloudOffline class="m-2" />
 				{{ $t("offline.message") }}
-			</div>
-			<div v-else-if="starting" class="d-flex align-items-center">
-				<span
-					class="spinner-border spinner-border-sm m-1 me-2"
-					role="status"
-					aria-hidden="true"
-				></span>
-				{{ $t("offline.starting") }}
 			</div>
 			<div
 				v-else-if="showError"
@@ -88,7 +80,9 @@ export default defineComponent({
 			return restart.restarting;
 		},
 		starting() {
-			return this.startupCompleted === false;
+			// Suppressed in evcc-hub: there is no local server startup.
+			// WaitingForData.vue handles the initial loading display.
+			return false;
 		},
 		visible() {
 			return (
