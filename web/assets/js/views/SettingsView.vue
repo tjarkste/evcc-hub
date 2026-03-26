@@ -170,7 +170,7 @@ export default defineComponent({
 				})
 				if (!resp.ok) {
 					const data = await resp.json().catch(() => ({}))
-					throw new Error(data.message || 'Passwort konnte nicht geändert werden.')
+					throw new Error(data.error || 'Passwort konnte nicht geändert werden.')
 				}
 				this.passwordSuccess = true
 				this.currentPassword = ''
