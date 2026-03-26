@@ -42,7 +42,7 @@ export default defineComponent({
 		},
 		statusTitle(): string {
 			if (store.state.connectionState === ConnectionState.RECONNECTING) {
-				return "Verbindung wird wiederhergestellt...";
+				return "Verbinde mit MQTT-Broker...";
 			}
 			if (this.isConnected) {
 				return "Verbunden — warte auf Daten von deiner evcc-Instanz...";
