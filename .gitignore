@@ -23,6 +23,12 @@ deploy/nginx/ssl/
 # Internal planning docs
 docs/superpowers/
 
+# Dev scripts
+scripts/
+
+# Test reports
+testreport/
+
 # Claude Code
 .claude/
 
