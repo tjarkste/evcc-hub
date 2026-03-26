@@ -9,7 +9,17 @@
 		</template>
 		<template v-else>
 			<ErrorBoundary section="Dashboard">
-				<WaitingForData v-if="waitingForData" />
+				<template v-if="waitingForData">
+					<TopNavigationArea :notifications="notifications ?? []" />
+					<WaitingForData />
+					<div class="text-center py-3">
+						<small class="text-muted">
+							<router-link to="/impressum">Impressum</router-link> ·
+							<router-link to="/datenschutz">Datenschutz</router-link> ·
+							<router-link to="/nutzungsbedingungen">Nutzungsbedingungen</router-link>
+						</small>
+					</div>
+				</template>
 				<SiteOverview
 					v-else-if="$route.path === '/overview'"
 					:sites="sites"
@@ -60,6 +70,7 @@ import ErrorBoundary from "../components/ErrorBoundary.vue";
 import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
 import SiteOverview from "../views/SiteOverview.vue";
 import WaitingForData from "../components/WaitingForData.vue";
+import TopNavigationArea from "../components/Top/TopNavigationArea.vue";
 import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
@@ -83,6 +94,7 @@ export default defineComponent({
 		SiteSwitcher,
 		SiteOverview,
 		WaitingForData,
+		TopNavigationArea,
 	},
 	mixins: [collector],
 	props: {
@@ -228,5 +240,7 @@ export default defineComponent({
 .app {
 	min-height: 100vh;
 	min-height: 100dvh;
+	display: flex;
+	flex-direction: column;
 }
 </style>
