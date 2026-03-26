@@ -1,8 +1,8 @@
 package storage
 
 import (
+	"context"
 	"crypto/rand"
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -12,44 +12,53 @@ import (
 	"evcc-cloud/backend/internal/models"
 
 	"github.com/google/uuid"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const bcryptCost = 12
+// BcryptCost is the bcrypt cost factor used for password hashing.
+const BcryptCost = 12
 
-// DB wraps a SQLite database connection.
+// DB wraps a PostgreSQL connection pool.
 type DB struct {
-	conn *sql.DB
+	pool *pgxpool.Pool
 }
 
-// Open opens (or creates) the SQLite database at the given path and runs migrations.
-func Open(path string) (*DB, error) {
-	conn, err := sql.Open("sqlite3", path+"?_journal_mode=WAL&_foreign_keys=on")
+// Open connects to PostgreSQL using the given database URL and runs migrations.
+func Open(databaseURL string) (*DB, error) {
+	cfg, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("open sqlite: %w", err)
+		return nil, fmt.Errorf("parse database url: %w", err)
 	}
-	db := &DB{conn: conn}
+	cfg.MinConns = 2
+	cfg.MaxConns = 10
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), cfg)
+	if err != nil {
+		return nil, fmt.Errorf("connect to postgres: %w", err)
+	}
+
+	db := &DB{pool: pool}
 	if err := db.migrate(); err != nil {
-		conn.Close()
+		pool.Close()
 		return nil, fmt.Errorf("migrate: %w", err)
 	}
 	return db, nil
 }
 
-// Close closes the underlying database connection.
+// Close closes the underlying connection pool.
 func (db *DB) Close() error {
-	return db.conn.Close()
+	db.pool.Close()
+	return nil
 }
 
 // Ping verifies the database connection is alive.
 func (db *DB) Ping() error {
-	return db.conn.Ping()
+	return db.pool.Ping(context.Background())
 }
 
 func (db *DB) migrate() error {
-	// Original users table
-	_, err := db.conn.Exec(`
+	_, err := db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS users (
 			id            TEXT PRIMARY KEY,
 			email         TEXT UNIQUE NOT NULL,
@@ -57,18 +66,15 @@ func (db *DB) migrate() error {
 			mqtt_username TEXT UNIQUE NOT NULL,
 			mqtt_password TEXT NOT NULL,
 			topic_prefix  TEXT NOT NULL,
-			created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	if err != nil {
 		return fmt.Errorf("create users table: %w", err)
 	}
 
-	// Add updated_at to users (idempotent — ignore error if column exists)
-	db.conn.Exec(`ALTER TABLE users ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP`)
-
-	// Sites table
-	_, err = db.conn.Exec(`
+	_, err = db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS sites (
 			id            TEXT PRIMARY KEY,
 			user_id       TEXT NOT NULL REFERENCES users(id),
@@ -77,22 +83,21 @@ func (db *DB) migrate() error {
 			mqtt_password TEXT NOT NULL,
 			topic_prefix  TEXT UNIQUE NOT NULL,
 			timezone      TEXT,
-			created_at    DATETIME NOT NULL,
-			updated_at    DATETIME NOT NULL
+			created_at    TIMESTAMPTZ NOT NULL,
+			updated_at    TIMESTAMPTZ NOT NULL
 		)
 	`)
 	if err != nil {
 		return fmt.Errorf("create sites table: %w", err)
 	}
 
-	// Refresh tokens table
-	_, err = db.conn.Exec(`
+	_, err = db.pool.Exec(context.Background(), `
 		CREATE TABLE IF NOT EXISTS refresh_tokens (
 			id         TEXT PRIMARY KEY,
 			user_id    TEXT NOT NULL REFERENCES users(id),
 			token_hash TEXT NOT NULL,
-			expires_at DATETIME NOT NULL,
-			created_at DATETIME NOT NULL
+			expires_at TIMESTAMPTZ NOT NULL,
+			created_at TIMESTAMPTZ NOT NULL
 		)
 	`)
 	if err != nil {
@@ -109,7 +114,7 @@ func (db *DB) migrate() error {
 
 // migrateExistingUsersToSites creates a default "My Home" site for any user that doesn't have one yet.
 func (db *DB) migrateExistingUsersToSites() error {
-	rows, err := db.conn.Query(`
+	rows, err := db.pool.Query(context.Background(), `
 		SELECT u.id FROM users u
 		LEFT JOIN sites s ON s.user_id = u.id
 		WHERE s.id IS NULL
@@ -136,6 +141,12 @@ func (db *DB) migrateExistingUsersToSites() error {
 	return nil
 }
 
+// TruncateAll removes all data from all tables. For test cleanup only.
+func (db *DB) TruncateAll() error {
+	_, err := db.pool.Exec(context.Background(), `TRUNCATE refresh_tokens, sites, users CASCADE`)
+	return err
+}
+
 // EnsureDefaultSite creates a "My Home" site if the user has none. Called after CreateUser.
 func (db *DB) EnsureDefaultSite(userID string) (*models.Site, error) {
 	sites, err := db.GetSitesByUserID(userID)
@@ -150,7 +161,7 @@ func (db *DB) EnsureDefaultSite(userID string) (*models.Site, error) {
 
 // CreateUser hashes the password, generates MQTT credentials, persists the user and returns it.
 func (db *DB) CreateUser(email, plainPassword string) (*models.User, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcryptCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), BcryptCost)
 	if err != nil {
 		return nil, fmt.Errorf("hash password: %w", err)
 	}
@@ -164,10 +175,10 @@ func (db *DB) CreateUser(email, plainPassword string) (*models.User, error) {
 	topicPrefix := "user/" + userID + "/evcc"
 
 	now := time.Now().UTC()
-	_, err = db.conn.Exec(
-		`INSERT INTO users (id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-		userID, email, string(hash), mqttUsername, mqttPassword, topicPrefix, now,
+	_, err = db.pool.Exec(context.Background(),
+		`INSERT INTO users (id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		userID, email, string(hash), mqttUsername, mqttPassword, topicPrefix, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert user: %w", err)
@@ -186,29 +197,43 @@ func (db *DB) CreateUser(email, plainPassword string) (*models.User, error) {
 		MQTTPassword: mqttPassword,
 		TopicPrefix:  topicPrefix,
 		CreatedAt:    now,
+		UpdatedAt:    now,
 	}, nil
 }
 
-// GetUserByEmail retrieves a user by email. Returns sql.ErrNoRows if not found.
+// GetUserByEmail retrieves a user by email. Returns pgx.ErrNoRows if not found.
 func (db *DB) GetUserByEmail(email string) (*models.User, error) {
 	u := &models.User{}
-	err := db.conn.QueryRow(
-		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at
-		 FROM users WHERE email = ?`, email,
-	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt)
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at, updated_at
+		 FROM users WHERE email = $1`, email,
+	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
 	return u, nil
 }
 
-// GetUserByMQTTUsername retrieves a user by MQTT username. Returns sql.ErrNoRows if not found.
+// GetUserByMQTTUsername retrieves a user by MQTT username. Returns pgx.ErrNoRows if not found.
 func (db *DB) GetUserByMQTTUsername(mqttUsername string) (*models.User, error) {
 	u := &models.User{}
-	err := db.conn.QueryRow(
-		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at
-		 FROM users WHERE mqtt_username = ?`, mqttUsername,
-	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt)
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at, updated_at
+		 FROM users WHERE mqtt_username = $1`, mqttUsername,
+	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt, &u.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
+
+// GetUserByID retrieves a user by their UUID.
+func (db *DB) GetUserByID(userID string) (*models.User, error) {
+	u := &models.User{}
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at, updated_at
+		 FROM users WHERE id = $1`, userID,
+	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +327,6 @@ func GenerateMQTTUsername(userID string) string {
 
 // GenerateRandomPassword generates a cryptographically random alphanumeric password of length n.
 func GenerateRandomPassword(n int) (string, error) {
-	// Use base64 URL encoding and strip non-alphanumeric chars until we have enough.
 	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	result := make([]byte, 0, n)
 	for len(result) < n {
@@ -334,9 +358,9 @@ func (db *DB) CreateSite(userID, name string, timezone *string) (*models.Site, e
 	topicPrefix := fmt.Sprintf("user/%s/site/%s/evcc", userID, siteID)
 	now := time.Now().UTC()
 
-	_, err = db.conn.Exec(
+	_, err = db.pool.Exec(context.Background(),
 		`INSERT INTO sites (id, user_id, name, mqtt_username, mqtt_password, topic_prefix, timezone, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		siteID, userID, name, mqttUsername, mqttPassword, topicPrefix, timezone, now, now,
 	)
 	if err != nil {
@@ -358,9 +382,9 @@ func (db *DB) CreateSite(userID, name string, timezone *string) (*models.Site, e
 
 // GetSitesByUserID returns all sites belonging to a user.
 func (db *DB) GetSitesByUserID(userID string) ([]models.Site, error) {
-	rows, err := db.conn.Query(
+	rows, err := db.pool.Query(context.Background(),
 		`SELECT id, user_id, name, mqtt_username, topic_prefix, timezone, created_at, updated_at
-		 FROM sites WHERE user_id = ? ORDER BY created_at`, userID,
+		 FROM sites WHERE user_id = $1 ORDER BY created_at`, userID,
 	)
 	if err != nil {
 		return nil, err
@@ -378,11 +402,26 @@ func (db *DB) GetSitesByUserID(userID string) ([]models.Site, error) {
 	return sites, nil
 }
 
+// GetSiteByID retrieves a site by its ID, scoped to a user.
+func (db *DB) GetSiteByID(siteID, userID string) (*models.Site, error) {
+	var s models.Site
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT id, user_id, name, mqtt_username, mqtt_password, topic_prefix, timezone, created_at, updated_at
+		 FROM sites WHERE id = $1 AND user_id = $2`, siteID, userID,
+	).Scan(&s.ID, &s.UserID, &s.Name, &s.MQTTUsername, &s.MQTTPassword, &s.TopicPrefix, &s.Timezone, &s.CreatedAt, &s.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 // UpdateSite updates a site's name and/or timezone.
 func (db *DB) UpdateSite(siteID, userID string, name *string, timezone *string) (*models.Site, error) {
 	// Verify ownership
 	var count int
-	err := db.conn.QueryRow(`SELECT COUNT(*) FROM sites WHERE id = ? AND user_id = ?`, siteID, userID).Scan(&count)
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT COUNT(*) FROM sites WHERE id = $1 AND user_id = $2`, siteID, userID,
+	).Scan(&count)
 	if err != nil {
 		return nil, err
 	}
@@ -392,33 +431,38 @@ func (db *DB) UpdateSite(siteID, userID string, name *string, timezone *string) 
 
 	now := time.Now().UTC()
 	if name != nil {
-		if _, err := db.conn.Exec(`UPDATE sites SET name = ?, updated_at = ? WHERE id = ?`, *name, now, siteID); err != nil {
+		if _, err := db.pool.Exec(context.Background(),
+			`UPDATE sites SET name = $1, updated_at = $2 WHERE id = $3`, *name, now, siteID,
+		); err != nil {
 			return nil, err
 		}
 	}
 	if timezone != nil {
-		if _, err := db.conn.Exec(`UPDATE sites SET timezone = ?, updated_at = ? WHERE id = ?`, *timezone, now, siteID); err != nil {
+		if _, err := db.pool.Exec(context.Background(),
+			`UPDATE sites SET timezone = $1, updated_at = $2 WHERE id = $3`, *timezone, now, siteID,
+		); err != nil {
 			return nil, err
 		}
 	}
 
 	// Return updated site
 	var s models.Site
-	err = db.conn.QueryRow(
+	err = db.pool.QueryRow(context.Background(),
 		`SELECT id, user_id, name, mqtt_username, topic_prefix, timezone, created_at, updated_at
-		 FROM sites WHERE id = ?`, siteID,
+		 FROM sites WHERE id = $1`, siteID,
 	).Scan(&s.ID, &s.UserID, &s.Name, &s.MQTTUsername, &s.TopicPrefix, &s.Timezone, &s.CreatedAt, &s.UpdatedAt)
 	return &s, err
 }
 
 // DeleteSite removes a site if it belongs to the given user.
 func (db *DB) DeleteSite(siteID, userID string) error {
-	result, err := db.conn.Exec(`DELETE FROM sites WHERE id = ? AND user_id = ?`, siteID, userID)
+	result, err := db.pool.Exec(context.Background(),
+		`DELETE FROM sites WHERE id = $1 AND user_id = $2`, siteID, userID,
+	)
 	if err != nil {
 		return err
 	}
-	affected, _ := result.RowsAffected()
-	if affected == 0 {
+	if result.RowsAffected() == 0 {
 		return errors.New("site not found")
 	}
 	return nil
@@ -427,9 +471,9 @@ func (db *DB) DeleteSite(siteID, userID string) error {
 // GetSiteByMQTTUsername retrieves a site by its MQTT username.
 func (db *DB) GetSiteByMQTTUsername(mqttUsername string) (*models.Site, error) {
 	var s models.Site
-	err := db.conn.QueryRow(
+	err := db.pool.QueryRow(context.Background(),
 		`SELECT s.id, s.user_id, s.name, s.mqtt_username, s.mqtt_password, s.topic_prefix, s.timezone, s.created_at, s.updated_at
-		 FROM sites s WHERE s.mqtt_username = ?`, mqttUsername,
+		 FROM sites s WHERE s.mqtt_username = $1`, mqttUsername,
 	).Scan(&s.ID, &s.UserID, &s.Name, &s.MQTTUsername, &s.MQTTPassword, &s.TopicPrefix, &s.Timezone, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -445,9 +489,9 @@ func (db *DB) CreateRefreshToken(userID, tokenHash string) (*models.RefreshToken
 	now := time.Now().UTC()
 	expiresAt := now.Add(refreshTokenDuration)
 
-	_, err := db.conn.Exec(
+	_, err := db.pool.Exec(context.Background(),
 		`INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at, created_at)
-		 VALUES (?, ?, ?, ?, ?)`,
+		 VALUES ($1, $2, $3, $4, $5)`,
 		id, userID, tokenHash, expiresAt, now,
 	)
 	if err != nil {
@@ -465,9 +509,9 @@ func (db *DB) CreateRefreshToken(userID, tokenHash string) (*models.RefreshToken
 // GetRefreshTokenByHash looks up a non-expired refresh token by its hash.
 func (db *DB) GetRefreshTokenByHash(tokenHash string) (*models.RefreshToken, error) {
 	var rt models.RefreshToken
-	err := db.conn.QueryRow(
+	err := db.pool.QueryRow(context.Background(),
 		`SELECT id, user_id, token_hash, expires_at, created_at
-		 FROM refresh_tokens WHERE token_hash = ? AND expires_at > ?`,
+		 FROM refresh_tokens WHERE token_hash = $1 AND expires_at > $2`,
 		tokenHash, time.Now().UTC(),
 	).Scan(&rt.ID, &rt.UserID, &rt.TokenHash, &rt.ExpiresAt, &rt.CreatedAt)
 	if err != nil {
@@ -478,41 +522,45 @@ func (db *DB) GetRefreshTokenByHash(tokenHash string) (*models.RefreshToken, err
 
 // DeleteRefreshToken removes a refresh token by its hash (used for rotation and logout).
 func (db *DB) DeleteRefreshToken(tokenHash string) error {
-	_, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE token_hash = ?`, tokenHash)
+	_, err := db.pool.Exec(context.Background(),
+		`DELETE FROM refresh_tokens WHERE token_hash = $1`, tokenHash,
+	)
 	return err
 }
 
 // DeleteRefreshTokensByUserID removes all refresh tokens for a user (force logout all sessions).
 func (db *DB) DeleteRefreshTokensByUserID(userID string) error {
-	_, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE user_id = ?`, userID)
+	_, err := db.pool.Exec(context.Background(),
+		`DELETE FROM refresh_tokens WHERE user_id = $1`, userID,
+	)
 	return err
 }
 
 // CleanupExpiredRefreshTokens removes all expired refresh tokens.
 func (db *DB) CleanupExpiredRefreshTokens() (int64, error) {
-	result, err := db.conn.Exec(`DELETE FROM refresh_tokens WHERE expires_at <= ?`, time.Now().UTC())
+	result, err := db.pool.Exec(context.Background(),
+		`DELETE FROM refresh_tokens WHERE expires_at <= $1`, time.Now().UTC(),
+	)
 	if err != nil {
 		return 0, err
 	}
-	return result.RowsAffected()
+	return result.RowsAffected(), nil
 }
 
 // CountSitesByUserID returns the number of sites for a user.
 func (db *DB) CountSitesByUserID(userID string) (int, error) {
 	var count int
-	err := db.conn.QueryRow(`SELECT COUNT(*) FROM sites WHERE user_id = ?`, userID).Scan(&count)
+	err := db.pool.QueryRow(context.Background(),
+		`SELECT COUNT(*) FROM sites WHERE user_id = $1`, userID,
+	).Scan(&count)
 	return count, err
 }
 
-// GetUserByID retrieves a user by their UUID.
-func (db *DB) GetUserByID(userID string) (*models.User, error) {
-	u := &models.User{}
-	err := db.conn.QueryRow(
-		`SELECT id, email, password_hash, mqtt_username, mqtt_password, topic_prefix, created_at
-		 FROM users WHERE id = ?`, userID,
-	).Scan(&u.ID, &u.Email, &u.PasswordHash, &u.MQTTUsername, &u.MQTTPassword, &u.TopicPrefix, &u.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return u, nil
+// UpdateUserPassword updates a user's password hash and sets updated_at.
+func (db *DB) UpdateUserPassword(userID, newHash string) error {
+	_, err := db.pool.Exec(context.Background(),
+		`UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+		newHash, userID,
+	)
+	return err
 }

@@ -1,15 +1,16 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"net/http"
-	"strings"
 
 	"evcc-cloud/backend/internal/auth"
 	"evcc-cloud/backend/internal/models"
 	"evcc-cloud/backend/internal/storage"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type authHandler struct {
@@ -27,7 +28,8 @@ func (h *authHandler) Register(c *gin.Context) {
 
 	user, err := h.db.CreateUser(req.Email, req.Password)
 	if err != nil {
-		if strings.Contains(err.Error(), "UNIQUE constraint") {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			apiError(c, http.StatusConflict, "duplicate_email", "email already registered")
 		} else {
 			log.Printf("CreateUser error: %v", err)

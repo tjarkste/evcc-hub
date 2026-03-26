@@ -35,9 +35,9 @@ func main() {
 		log.Fatal("JWT_SECRET environment variable is required")
 	}
 
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./data.db"
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Fatal("DATABASE_URL environment variable is required")
 	}
 
 	env := os.Getenv("ENV")
@@ -45,7 +45,7 @@ func main() {
 	corsOrigin := os.Getenv("CORS_ORIGIN")
 	mqttBrokerAddr := os.Getenv("MQTT_BROKER_ADDR")
 
-	db, err := storage.Open(dbPath)
+	db, err := storage.Open(databaseURL)
 	if err != nil {
 		log.Fatalf("open database: %v", err)
 	}
