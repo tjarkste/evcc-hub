@@ -133,6 +133,10 @@ export default function setupRouter(i18n: VueI18nInstance) {
         props: true,
       },
       {
+        path: "/settings",
+        component: () => import("./views/SettingsView.vue"),
+      },
+      {
         path: "/:pathMatch(.*)*",
         redirect: () => {
           try {
