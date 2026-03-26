@@ -1,26 +1,22 @@
 #!/bin/bash
 set -euo pipefail
 
-DB_PATH="/opt/evcc-cloud/data/evcc.db"
-BACKUP_DIR="/tmp/evcc-backups"
-REMOTE="hetzner:evcc-cloud-backups"
-DATE=$(date +%Y-%m-%d)
-DAY_OF_WEEK=$(date +%u)  # 1=Mon, 7=Sun
+BACKUP_DIR="/opt/evcc-hub/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DAY_OF_WEEK=$(date +%u)
 
-mkdir -p "$BACKUP_DIR"
+mkdir -p "$BACKUP_DIR/daily" "$BACKUP_DIR/weekly"
 
-BACKUP_FILE="$BACKUP_DIR/evcc-backup-$DATE.tar.gz"
-tar -czf "$BACKUP_FILE" -C "$(dirname "$DB_PATH")" "$(basename "$DB_PATH")"
+# Dump database via Docker
+docker exec evcc-hub-postgres-1 pg_dump -U evcc evcc_hub > "$BACKUP_DIR/daily/evcc_hub_${TIMESTAMP}.sql"
 
-# Daily backups — keep 7 days
-rclone copy "$BACKUP_FILE" "$REMOTE/daily/"
-rclone delete --min-age 8d "$REMOTE/daily/"
+# Keep daily backups for 7 days
+find "$BACKUP_DIR/daily" -name "*.sql" -mtime +7 -delete
 
-# Weekly backups on Sunday — keep 4 weeks
-if [ "$DAY_OF_WEEK" = "7" ]; then
-  rclone copy "$BACKUP_FILE" "$REMOTE/weekly/"
-  rclone delete --min-age 29d "$REMOTE/weekly/"
+# Weekly backup on Sunday (keep 4 weeks)
+if [ "$DAY_OF_WEEK" -eq 7 ]; then
+    cp "$BACKUP_DIR/daily/evcc_hub_${TIMESTAMP}.sql" "$BACKUP_DIR/weekly/"
+    find "$BACKUP_DIR/weekly" -name "*.sql" -mtime +28 -delete
 fi
 
-rm -f "$BACKUP_FILE"
-echo "Backup completed: $DATE"
+echo "Backup completed: evcc_hub_${TIMESTAMP}.sql"
