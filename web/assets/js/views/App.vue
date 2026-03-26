@@ -1,39 +1,48 @@
 <template>
 	<div class="app">
-		<ErrorBoundary section="Dashboard">
-			<WaitingForData v-if="waitingForData" />
-			<SiteOverview
-				v-else-if="$route.path === '/overview'"
+		<template v-if="!authChecked">
+			<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; min-height: 100dvh;">
+				<div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+					<span class="visually-hidden">Laden...</span>
+				</div>
+			</div>
+		</template>
+		<template v-else>
+			<ErrorBoundary section="Dashboard">
+				<WaitingForData v-if="waitingForData" />
+				<SiteOverview
+					v-else-if="$route.path === '/overview'"
+					:sites="sites"
+					:selected-site-id="selectedSiteId"
+					@select-site="handleSelectSite"
+				/>
+				<router-view
+					v-else-if="showRoutes"
+					:notifications="notifications"
+					:offline="offline"
+				></router-view>
+			</ErrorBoundary>
+			<ConnectionStatus v-if="!$route.meta['noAuth']" />
+			<SiteSwitcher
 				:sites="sites"
 				:selected-site-id="selectedSiteId"
-				@select-site="handleSelectSite"
+				@site-changed="handleSiteChange"
 			/>
-			<router-view
-				v-else-if="showRoutes"
-				:notifications="notifications"
-				:offline="offline"
-			></router-view>
-		</ErrorBoundary>
-		<ConnectionStatus v-if="!$route.meta['noAuth']" />
-		<SiteSwitcher
-			:sites="sites"
-			:selected-site-id="selectedSiteId"
-			@site-changed="handleSiteChange"
-		/>
 
-		<ErrorBoundary section="Settings">
-			<GlobalSettingsModal v-bind="globalSettingsProps" />
-		</ErrorBoundary>
-		<ErrorBoundary section="Battery">
-			<BatterySettingsModal v-if="batteryModalAvailabe" v-bind="batterySettingsProps" />
-		</ErrorBoundary>
-		<ErrorBoundary section="Forecast">
-			<ForecastModal v-bind="forecastModalProps" />
-		</ErrorBoundary>
-		<HelpModal />
-		<PasswordModal />
-		<LoginModal v-bind="loginModalProps" />
-		<OfflineIndicator v-if="!$route.meta['noAuth']" v-bind="offlineIndicatorProps" />
+			<ErrorBoundary section="Settings">
+				<GlobalSettingsModal v-bind="globalSettingsProps" />
+			</ErrorBoundary>
+			<ErrorBoundary section="Battery">
+				<BatterySettingsModal v-if="batteryModalAvailabe" v-bind="batterySettingsProps" />
+			</ErrorBoundary>
+			<ErrorBoundary section="Forecast">
+				<ForecastModal v-bind="forecastModalProps" />
+			</ErrorBoundary>
+			<HelpModal />
+			<PasswordModal />
+			<LoginModal v-bind="loginModalProps" />
+			<OfflineIndicator v-if="!$route.meta['noAuth']" v-bind="offlineIndicatorProps" />
+		</template>
 	</div>
 </template>
 
@@ -82,6 +91,7 @@ export default defineComponent({
 	},
 	data: () => {
 		return {
+			authChecked: false,
 			authNotConfigured: false,
 			hasCachedState: false,
 			sites: [] as Site[],
@@ -142,6 +152,7 @@ export default defineComponent({
 			if (!this.$route.meta["noAuth"]) {
 				this.$router.push('/login');
 			}
+			this.authChecked = true;
 			return;
 		}
 
@@ -182,6 +193,8 @@ export default defineComponent({
 				subscribeSite(cachedPrefix);
 			}
 		}
+
+		this.authChecked = true;
 	},
 	unmounted() {
 		stopTokenRefresh();
