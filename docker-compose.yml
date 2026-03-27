@@ -1,6 +1,6 @@
 services:
   mosquitto:
-    image: eclipse-mosquitto:2
+    image: iegomez/mosquitto-go-auth:latest
     ports:
       - "8883:8883"
       - "9001:9001"
