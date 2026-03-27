@@ -6,9 +6,9 @@
       <div v-if="mode === 'login'">
         <h2 class="text-center mb-4">⚡ evcc Hub</h2>
         <p class="text-center text-muted small mb-4">
-          Dein evcc-Dashboard, von überall erreichbar.<br>
+          {{ $t('hub.auth.tagline') }}<br>
           <a href="https://github.com/tjarkste/evcc-hub" target="_blank" rel="noopener" class="text-primary">
-            Open Source auf GitHub →
+            {{ $t('hub.auth.openSource') }}
           </a>
         </p>
         <div v-if="error" class="alert alert-danger">{{ error }}</div>
@@ -17,7 +17,7 @@
             v-model="email"
             type="email"
             class="form-control"
-            placeholder="E-Mail"
+            :placeholder="$t('hub.auth.emailPlaceholder')"
             data-test="email"
           />
         </div>
@@ -26,7 +26,7 @@
             v-model="password"
             type="password"
             class="form-control"
-            placeholder="Passwort"
+            :placeholder="$t('hub.auth.passwordPlaceholder')"
             data-test="password"
           />
         </div>
@@ -36,10 +36,10 @@
           :disabled="loading"
           data-test="login-btn"
         >
-          {{ loading ? 'Wird angemeldet...' : 'Anmelden' }}
+          {{ loading ? $t('hub.auth.loggingIn') : $t('hub.auth.loginButton') }}
         </button>
         <div class="text-center mt-3">
-          <a href="#" @click.prevent="mode = 'register'">Noch kein Konto? Registrieren</a>
+          <a href="#" @click.prevent="mode = 'register'">{{ $t('hub.auth.noAccount') }}</a>
         </div>
       </div>
 
@@ -47,19 +47,19 @@
       <div v-else-if="mode === 'register'">
         <h2 class="text-center mb-4">⚡ evcc Hub</h2>
         <p class="text-center text-muted small mb-4">
-          Dein evcc-Dashboard, von überall erreichbar.<br>
+          {{ $t('hub.auth.tagline') }}<br>
           <a href="https://github.com/tjarkste/evcc-hub" target="_blank" rel="noopener" class="text-primary">
-            Open Source auf GitHub →
+            {{ $t('hub.auth.openSource') }}
           </a>
         </p>
-        <p class="text-muted text-center">Kostenlosen Account erstellen</p>
+        <p class="text-muted text-center">{{ $t('hub.auth.createFreeAccount') }}</p>
         <div v-if="error" class="alert alert-danger">{{ error }}</div>
         <div class="mb-3">
           <input
             v-model="email"
             type="email"
             class="form-control"
-            placeholder="E-Mail"
+            :placeholder="$t('hub.auth.emailPlaceholder')"
             data-test="email"
           />
         </div>
@@ -68,7 +68,7 @@
             v-model="password"
             type="password"
             class="form-control"
-            placeholder="Passwort"
+            :placeholder="$t('hub.auth.passwordPlaceholder')"
             data-test="password"
           />
         </div>
@@ -78,17 +78,17 @@
           :disabled="loading"
           data-test="register-btn"
         >
-          {{ loading ? 'Wird registriert...' : 'Registrieren' }}
+          {{ loading ? $t('hub.auth.registering') : $t('hub.auth.registerButton') }}
         </button>
         <div class="text-center mt-3">
-          <a href="#" @click.prevent="mode = 'login'">Bereits ein Konto? Anmelden</a>
+          <a href="#" @click.prevent="mode = 'login'">{{ $t('hub.auth.alreadyHaveAccount') }}</a>
         </div>
       </div>
 
       <!-- Onboarding nach Registrierung -->
       <div v-else-if="mode === 'onboarding'">
-        <h2 class="text-center mb-1">Konto erstellt!</h2>
-        <p class="text-center text-muted mb-4">Verbinde jetzt deine evcc-Instanz.</p>
+        <h2 class="text-center mb-1">{{ $t('hub.auth.onboarding.title') }}</h2>
+        <p class="text-center text-muted mb-4">{{ $t('hub.auth.onboarding.subtitle') }}</p>
 
         <!-- Step 1 -->
         <div class="d-flex gap-3 mb-3">
@@ -97,11 +97,11 @@
             style="width:2rem;height:2rem;font-size:0.85rem;"
           >1</div>
           <div>
-            <p class="mb-0 fw-semibold">evcc installiert?</p>
+            <p class="mb-0 fw-semibold">{{ $t('hub.auth.onboarding.step1Title') }}</p>
             <p class="text-muted small mb-0">
-              Falls noch nicht:
+              {{ $t('hub.auth.onboarding.step1Hint') }}
               <a href="https://docs.evcc.io/docs/installation/linux" target="_blank" rel="noopener">
-                evcc installieren →
+                {{ $t('hub.auth.onboarding.step1Link') }}
               </a>
             </p>
           </div>
@@ -114,9 +114,9 @@
             style="width:2rem;height:2rem;font-size:0.85rem;"
           >2</div>
           <div class="w-100">
-            <p class="mb-1 fw-semibold">MQTT-Konfiguration hinzufügen</p>
+            <p class="mb-1 fw-semibold">{{ $t('hub.auth.onboarding.step2Title') }}</p>
             <p class="text-muted small mb-2">
-              Füge diese Zeilen in deine <code>evcc.yaml</code> ein:
+              {{ $t('hub.auth.onboarding.step2Hint') }}
             </p>
             <pre
               class="bg-dark text-light p-2 rounded mb-2"
@@ -128,7 +128,7 @@
               class="btn btn-outline-secondary btn-sm"
               data-test="copy-config-btn"
             >
-              {{ copied ? '✓ Kopiert!' : 'Kopieren' }}
+              {{ copied ? $t('hub.auth.onboarding.copied') : $t('hub.auth.onboarding.copy') }}
             </button>
           </div>
         </div>
@@ -140,7 +140,7 @@
             style="width:2rem;height:2rem;font-size:0.85rem;"
           >3</div>
           <div>
-            <p class="mb-0 fw-semibold">evcc neu starten</p>
+            <p class="mb-0 fw-semibold">{{ $t('hub.auth.onboarding.step3Title') }}</p>
             <p class="text-muted small mb-0">
               <code>sudo systemctl restart evcc</code>
             </p>
@@ -152,7 +152,7 @@
           class="btn btn-primary w-100"
           data-test="to-dashboard-btn"
         >
-          Weiter zum Dashboard
+          {{ $t('hub.auth.onboarding.toDashboard') }}
         </button>
       </div>
 
@@ -200,7 +200,7 @@ export default defineComponent({
         await login(this.email, this.password)
         this.$router.push('/')
       } catch {
-        this.error = 'Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.'
+        this.error = this.$t('hub.auth.loginFailed')
       } finally {
         this.loading = false
       }
@@ -220,7 +220,7 @@ export default defineComponent({
         }
         this.mode = 'onboarding'
       } catch {
-        this.error = 'Registrierung fehlgeschlagen. Bitte versuche es erneut.'
+        this.error = this.$t('hub.auth.registerFailed')
       } finally {
         this.loading = false
       }
