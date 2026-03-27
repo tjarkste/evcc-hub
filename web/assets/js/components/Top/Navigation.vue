@@ -65,7 +65,7 @@
 			</li>
 			<li>
 				<router-link class="dropdown-item" to="/settings" active-class="active">
-					Profil & Einstellungen
+					{{ $t('hub.nav.profileSettings') }}
 				</router-link>
 			</li>
 			<li><hr class="dropdown-divider" /></li>
@@ -92,7 +92,7 @@
 
 			<li v-if="optimizeAvailable">
 				<router-link class="dropdown-item" to="/optimize" active-class="active">
-					Optimize 🧪
+					{{ $t('hub.nav.optimize') }}
 				</router-link>
 			</li>
 			<li><hr class="dropdown-divider" /></li>
@@ -120,15 +120,6 @@
 					<span>{{ $t("header.needHelp") }}</span>
 				</button>
 			</li>
-			<li>
-				<a class="dropdown-item d-flex" href="https://evcc.io/" target="_blank">
-					<span>evcc.io</span>
-					<shopicon-regular-newtab
-						size="s"
-						class="ms-2 external"
-					></shopicon-regular-newtab>
-				</a>
-			</li>
 			<li v-if="isApp">
 				<button
 					type="button"
@@ -154,7 +145,6 @@ import Dropdown from "bootstrap/js/dist/dropdown";
 import "@h2d2/shopicons/es/regular/gift";
 import "@h2d2/shopicons/es/regular/moonstars";
 import "@h2d2/shopicons/es/regular/menu";
-import "@h2d2/shopicons/es/regular/newtab";
 import collector from "@/mixins/collector";
 import { logout, isLoggedIn, openLoginModal } from "../Auth/auth";
 import { isApp, sendToApp } from "@/utils/native";
@@ -282,10 +272,6 @@ export default defineComponent({
 <style scoped>
 .menu-button {
 	margin-right: -0.7rem;
-}
-.external {
-	width: 18px;
-	height: 20px;
 }
 .dropdown-menu {
 	/* above sticky, below modal https://getbootstrap.com/docs/5.3/layout/z-index/ */

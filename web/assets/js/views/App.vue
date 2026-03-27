@@ -3,7 +3,7 @@
 		<template v-if="!authChecked">
 			<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; min-height: 100dvh;">
 				<div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-					<span class="visually-hidden">Laden...</span>
+					<span class="visually-hidden">{{ $t('hub.waiting.loading') }}</span>
 				</div>
 			</div>
 		</template>
@@ -146,7 +146,7 @@ export default defineComponent({
 		waitingForData(): boolean {
 			if (this.hasCachedState) return false;
 			if (this.$route.meta["noAuth"]) return false;
-			if (this.$route.path === '/overview') return false;
+			if (this.$route.meta["noDataRequired"]) return false;
 			return store.state.lastDataAt === null;
 		},
 	},

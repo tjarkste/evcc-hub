@@ -7,12 +7,6 @@
     role="status"
     data-testid="connection-status"
   >
-    <span
-      v-if="isReconnecting"
-      class="spinner-border spinner-border-sm"
-      role="status"
-      aria-hidden="true"
-    ></span>
     <span>{{ statusText }}</span>
     <span v-if="staleText" class="text-muted ms-1">{{ staleText }}</span>
   </div>
@@ -50,9 +44,9 @@ export default defineComponent({
     statusText(): string {
       switch (this.connectionState) {
         case ConnectionState.RECONNECTING:
-          return 'Reconnecting...'
+          return this.$t('hub.connection.reconnecting')
         case ConnectionState.OFFLINE:
-          return 'Offline'
+          return this.$t('hub.connection.offline')
         default:
           return ''
       }
@@ -60,9 +54,9 @@ export default defineComponent({
     staleText(): string {
       if (!this.isStale || !this.lastDataAt) return ''
       const seconds = Math.round((Date.now() - this.lastDataAt) / 1000)
-      if (seconds < 120) return `(last update ${seconds}s ago)`
+      if (seconds < 120) return this.$t('hub.connection.staleSeconds', { seconds })
       const minutes = Math.round(seconds / 60)
-      return `(last update ${minutes}m ago)`
+      return this.$t('hub.connection.staleMinutes', { minutes })
     },
     statusClass(): string {
       if (this.connectionState === ConnectionState.OFFLINE) return 'text-danger'

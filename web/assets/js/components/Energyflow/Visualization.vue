@@ -19,7 +19,7 @@
 					<QuestionIcon />
 				</LabelBar>
 			</div>
-			<div class="label-scale-name">In</div>
+			<div class="label-scale-name">{{ $t('hub.energyflow.in') }}</div>
 		</div>
 		<div ref="site_progress" class="site-progress">
 			<div class="site-progress-bar self-pv" :style="{ width: widthTotal(selfPvAdjusted) }">
@@ -100,7 +100,7 @@
 					<QuestionIcon />
 				</LabelBar>
 			</div>
-			<div class="label-scale-name">Out</div>
+			<div class="label-scale-name">{{ $t('hub.energyflow.out') }}</div>
 		</div>
 		<BatteryIcon hold class="battery-hold" :class="{ 'battery-hold--active': batteryHold }" />
 	</div>

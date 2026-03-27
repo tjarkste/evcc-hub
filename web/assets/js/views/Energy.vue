@@ -1,7 +1,7 @@
 <template>
 	<div class="container px-4 safe-area-inset">
-		<TopHeader title="Energy Overview" />
-		<div class="alert alert-light mb-3">This page is work in progress.</div>
+		<TopHeader :title="$t('hub.debug.energy.title')" />
+		<div class="alert alert-light mb-3">{{ $t('hub.debug.energy.wip') }}</div>
 		<div class="row">
 			<main class="col-12">
 				<div v-if="forecastAvailable">
@@ -33,7 +33,7 @@
 					/>
 				</div>
 				<div v-else>
-					<p>nothing to see here</p>
+					<p>{{ $t('hub.debug.energy.nothingToSee') }}</p>
 				</div>
 			</main>
 		</div>

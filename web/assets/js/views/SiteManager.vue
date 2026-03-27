@@ -1,6 +1,6 @@
 <template>
   <div class="container py-4" style="max-width: 600px;">
-    <h2 class="mb-4">Meine Standorte</h2>
+    <h2 class="mb-4">{{ $t('hub.sites.title') }}</h2>
 
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
@@ -18,16 +18,16 @@
             @click="selectSite(site)"
             data-test="select-site-btn"
           >
-            Auswählen
+            {{ $t('hub.sites.select') }}
           </button>
-          <span v-else class="badge bg-primary me-2">Aktiv</span>
+          <span v-else class="badge bg-primary me-2">{{ $t('hub.sites.active') }}</span>
           <button
             class="btn btn-sm btn-outline-danger"
             @click="handleDelete(site.id)"
             :disabled="sites.length <= 1"
             data-test="delete-site-btn"
           >
-            Löschen
+            {{ $t('hub.sites.delete') }}
           </button>
         </div>
       </div>
@@ -36,13 +36,13 @@
     <!-- Add Site -->
     <div class="card">
       <div class="card-body">
-        <h5 class="card-title">Neuen Standort hinzufügen</h5>
+        <h5 class="card-title">{{ $t('hub.sites.addSite') }}</h5>
         <div class="input-group">
           <input
             v-model="newSiteName"
             type="text"
             class="form-control"
-            placeholder="Name (z.B. Ferienhaus)"
+            :placeholder="$t('hub.sites.namePlaceholder')"
             data-test="new-site-name"
           />
           <button
@@ -51,17 +51,17 @@
             :disabled="!newSiteName.trim() || creating"
             data-test="create-site-btn"
           >
-            {{ creating ? '...' : 'Hinzufügen' }}
+            {{ creating ? $t('hub.sites.adding') : $t('hub.sites.add') }}
           </button>
         </div>
         <!-- Show credentials after creation -->
         <div v-if="createdSite" class="mt-3">
           <div class="alert alert-success">
-            <strong>{{ createdSite.name }}</strong> wurde erstellt.
-            <p class="mt-2 mb-1">Füge diese Zeilen in deine <code>evcc.yaml</code> ein:</p>
+            <strong>{{ createdSite.name }}</strong> {{ $t('hub.sites.siteCreatedSuffix') }}
+            <p class="mt-2 mb-1">{{ $t('hub.sites.mqttConfigHint') }}</p>
             <pre class="bg-dark text-light p-2 rounded" style="font-size: 0.85em;">{{ createdSiteConfig }}</pre>
             <button class="btn btn-outline-secondary btn-sm" @click="copyConfig">
-              {{ copied ? 'Kopiert!' : 'Kopieren' }}
+              {{ copied ? $t('hub.sites.copied') : $t('hub.sites.copy') }}
             </button>
           </div>
         </div>
@@ -69,7 +69,7 @@
     </div>
 
     <div class="mt-3">
-      <router-link to="/" class="btn btn-outline-secondary">Zurück zum Dashboard</router-link>
+      <router-link to="/" class="btn btn-outline-secondary">{{ $t('hub.sites.backToDashboard') }}</router-link>
     </div>
   </div>
 </template>
@@ -98,7 +98,7 @@ export default defineComponent({
     try {
       this.sites = await fetchSites()
     } catch {
-      this.error = 'Standorte konnten nicht geladen werden.'
+      this.error = this.$t('hub.sites.loadError')
     }
   },
   methods: {
@@ -118,7 +118,7 @@ export default defineComponent({
         this.newSiteName = ''
         this.sites = await fetchSites()
       } catch {
-        this.error = 'Standort konnte nicht erstellt werden.'
+        this.error = this.$t('hub.sites.createError')
       } finally {
         this.creating = false
       }
@@ -132,7 +132,7 @@ export default defineComponent({
           this.selectSite(this.sites[0])
         }
       } catch {
-        this.error = 'Standort konnte nicht gelöscht werden.'
+        this.error = this.$t('hub.sites.deleteError')
       }
     },
     async copyConfig() {

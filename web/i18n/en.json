@@ -958,6 +958,174 @@
     "restartDescription": "Tried turning it off and on again?",
     "secondaryActions": "Still not able to solve your problem? Here are some more heavy-handed options."
   },
+  "hub": {
+    "auth": {
+      "alreadyHaveAccount": "Already have an account? Sign in",
+      "createFreeAccount": "Create a free account",
+      "emailPlaceholder": "Email",
+      "loginButton": "Sign In",
+      "loginFailed": "Login failed. Please check your email and password.",
+      "loggingIn": "Signing in...",
+      "noAccount": "No account yet? Register",
+      "onboarding": {
+        "copied": "Copied!",
+        "copy": "Copy",
+        "step1Hint": "If not yet:",
+        "step1Link": "Install evcc →",
+        "step1Title": "evcc installed?",
+        "step2Hint": "Add these lines to your evcc.yaml:",
+        "step2Title": "Add MQTT configuration",
+        "step3Title": "Restart evcc",
+        "subtitle": "Now connect your evcc instance.",
+        "toDashboard": "Go to Dashboard",
+        "title": "Account created!"
+      },
+      "openSource": "Open Source on GitHub →",
+      "passwordPlaceholder": "Password",
+      "registerButton": "Register",
+      "registerFailed": "Registration failed. Please try again.",
+      "registering": "Registering...",
+      "tagline": "Your evcc dashboard, accessible from anywhere."
+    },
+    "connection": {
+      "offline": "Offline",
+      "reconnecting": "Reconnecting...",
+      "staleMinutes": "(last update {minutes}m ago)",
+      "staleSeconds": "(last update {seconds}s ago)"
+    },
+    "debug": {
+      "battery": {
+        "battery": "Battery",
+        "charge": "Charge",
+        "chargeDischarge": "Charge / Discharge",
+        "demandProfile": "Demand Profile",
+        "discharge": "Discharge",
+        "energyValue": "Energy Value",
+        "goals": "goals",
+        "gridInteraction": "Grid Interaction",
+        "maxDischarge": "Max Discharge",
+        "none": "None",
+        "powerRange": "Power Range",
+        "socGoals": "SoC Goals",
+        "socRange": "SoC Range",
+        "stateOfCharge": "State of Charge",
+        "steps": "steps"
+      },
+      "of": "of",
+      "energy": {
+        "nothingToSee": "nothing to see here",
+        "title": "Energy Overview",
+        "wip": "This page is work in progress."
+      },
+      "optimize": {
+        "batteryInput": "Input: Battery",
+        "chargeEfficiency": "charge efficiency",
+        "chargingPlanResult": "Result: Charging Plan",
+        "description": "This page is for development purposes only. Gives insights into the upcoming optimization algorithm.",
+        "dischargeEfficiency": "discharge efficiency",
+        "gridPricesInput": "Input: Grid Prices",
+        "nothingToSee": "nothing to see here",
+        "rawData": "Raw Data",
+        "request": "Request:",
+        "response": "Response:",
+        "saved": "saved",
+        "socProjectionResult": "Result: SoC Projection",
+        "timeSeries": "Time Series",
+        "title": "Optimize Debug"
+      }
+    },
+    "energyflow": {
+      "in": "In",
+      "out": "Out"
+    },
+    "error": {
+      "failedToRender": "failed to render.",
+      "retry": "Retry",
+      "unknown": "Unknown error"
+    },
+    "help": {
+      "hubGithub": "evcc Hub on GitHub"
+    },
+    "issue": {
+      "loadApiConfigError": "Failed to load API configuration",
+      "loadConfigError": "Failed to load configuration",
+      "loadLogsError": "Failed to load logs",
+      "loadStateError": "Failed to load system state",
+      "englishNote": "Please write your issue in English so everyone can participate.",
+      "titlePlaceholder": "Brief description of the problem",
+      "descriptionPlaceholder": "Describe what you expected to happen and what actually happened...",
+      "stepsPlaceholder": "1. Go to...&#10;2. Click on...&#10;3. See error..."
+    },
+    "legal": {
+      "loading": "Loading..."
+    },
+    "nav": {
+      "optimize": "Optimize 🧪",
+      "profileSettings": "Profile & Settings"
+    },
+    "settings": {
+      "accountSection": "Account",
+      "changePassword": "Change Password",
+      "confirmPassword": "Confirm New Password",
+      "currentPassword": "Current Password",
+      "emailLabel": "Email address",
+      "loading": "Loading...",
+      "logout": "Log out",
+      "newPassword": "New Password",
+      "passwordChangeError": "Could not change password.",
+      "passwordMismatch": "The new passwords do not match.",
+      "passwordSuccess": "Password changed successfully. You will be logged out shortly...",
+      "profileLoadError": "Could not load profile.",
+      "registeredSince": "Registered since",
+      "savePassword": "Save Password",
+      "saving": "Saving…",
+      "title": "Profile & Settings"
+    },
+    "sites": {
+      "active": "Active",
+      "add": "Add",
+      "addSite": "Add New Site",
+      "adding": "Adding...",
+      "backToDashboard": "Back to Dashboard",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "createError": "Could not create site.",
+      "credentials": {
+        "brokerPort": "Broker Port",
+        "brokerUrl": "Broker URL",
+        "close": "Close",
+        "copied": "Copied!",
+        "copy": "Copy",
+        "description": "You need these credentials for the evcc configuration of this site.",
+        "hide": "Hide",
+        "loadError": "Could not load credentials.",
+        "loading": "Loading…",
+        "mqttPassword": "MQTT Password",
+        "mqttUsername": "MQTT Username",
+        "show": "Show",
+        "title": "MQTT Credentials — {siteName}",
+        "topicPrefix": "Topic Prefix",
+        "ariaLabel": "MQTT Credentials for {name}"
+      },
+      "delete": "Delete",
+      "deleteError": "Could not delete site.",
+      "loadError": "Could not load sites.",
+      "manageSites": "Manage Sites",
+      "mqttConfigHint": "Add these lines to your evcc.yaml:",
+      "namePlaceholder": "Name (e.g. Holiday Home)",
+      "select": "Select",
+      "siteCreatedSuffix": "was created.",
+      "title": "My Sites",
+      "view": "View"
+    },
+    "waiting": {
+      "connecting": "Connecting to MQTT broker...",
+      "loading": "Loading...",
+      "noData": "No data received.",
+      "noDataHint": "Is your evcc instance online and configured correctly?",
+      "waitingForData": "Connected — waiting for data from your evcc instance..."
+    }
+  },
   "issue": {
     "additional": {
       "description": "Include configuration and logs to help us reproduce the issue quickly. We encourage sharing as much as possible. State is usually not needed.",
