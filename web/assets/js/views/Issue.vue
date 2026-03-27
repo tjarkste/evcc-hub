@@ -90,7 +90,7 @@
 									v-model="issue.description"
 									class="form-control"
 									rows="6"
-									placeholder="Describe what you expected to happen and what actually happened..."
+									:placeholder="$t('hub.issue.descriptionPlaceholder')"
 									required
 								></textarea>
 							</div>
@@ -103,7 +103,7 @@
 									v-model="issue.steps"
 									class="form-control"
 									rows="6"
-									placeholder="1. Go to...&#10;2. Click on...&#10;3. See error..."
+									:placeholder="$t('hub.issue.stepsPlaceholder')"
 									required
 								></textarea>
 							</div>

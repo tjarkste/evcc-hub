@@ -1011,6 +1011,7 @@
         "stateOfCharge": "Ladestand",
         "steps": "Schritte"
       },
+      "of": "von",
       "energy": {
         "nothingToSee": "nichts zu sehen",
         "title": "Energie-Übersicht",
@@ -1038,7 +1039,7 @@
       "out": "Bezug"
     },
     "error": {
-      "failedToRender": "failed to render.",
+      "failedToRender": "Konnte nicht gerendert werden.",
       "retry": "Wiederholen",
       "unknown": "Unbekannter Fehler"
     },
@@ -1051,7 +1052,9 @@
       "loadLogsError": "Logs konnten nicht geladen werden",
       "loadStateError": "Systemstatus konnte nicht geladen werden",
       "englishNote": "Bitte schreibe dein Issue auf Englisch, damit alle mitmachen können.",
-      "titlePlaceholder": "Kurze Beschreibung des Problems"
+      "titlePlaceholder": "Kurze Beschreibung des Problems",
+      "descriptionPlaceholder": "Describe what you expected to happen and what actually happened...",
+      "stepsPlaceholder": "1. Go to...&#10;2. Click on...&#10;3. See error..."
     },
     "legal": {
       "loading": "Lädt..."
@@ -1082,7 +1085,7 @@
       "active": "Aktiv",
       "add": "Hinzufügen",
       "addSite": "Neuen Standort hinzufügen",
-      "adding": "...",
+      "adding": "Wird hinzugefügt...",
       "backToDashboard": "Zurück zum Dashboard",
       "copy": "Kopieren",
       "copied": "Kopiert!",
@@ -1101,7 +1104,8 @@
         "mqttUsername": "MQTT-Benutzername",
         "show": "Anzeigen",
         "title": "MQTT-Zugangsdaten — {siteName}",
-        "topicPrefix": "Topic Prefix"
+        "topicPrefix": "Topic Prefix",
+        "ariaLabel": "MQTT-Zugangsdaten für {name}"
       },
       "delete": "Löschen",
       "deleteError": "Standort konnte nicht gelöscht werden.",

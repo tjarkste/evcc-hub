@@ -1011,6 +1011,7 @@
         "stateOfCharge": "State of Charge",
         "steps": "steps"
       },
+      "of": "of",
       "energy": {
         "nothingToSee": "nothing to see here",
         "title": "Energy Overview",
@@ -1051,7 +1052,9 @@
       "loadLogsError": "Failed to load logs",
       "loadStateError": "Failed to load system state",
       "englishNote": "Please write your issue in English so everyone can participate.",
-      "titlePlaceholder": "Brief description of the problem"
+      "titlePlaceholder": "Brief description of the problem",
+      "descriptionPlaceholder": "Describe what you expected to happen and what actually happened...",
+      "stepsPlaceholder": "1. Go to...&#10;2. Click on...&#10;3. See error..."
     },
     "legal": {
       "loading": "Loading..."
@@ -1101,7 +1104,8 @@
         "mqttUsername": "MQTT Username",
         "show": "Show",
         "title": "MQTT Credentials — {siteName}",
-        "topicPrefix": "Topic Prefix"
+        "topicPrefix": "Topic Prefix",
+        "ariaLabel": "MQTT Credentials for {name}"
       },
       "delete": "Delete",
       "deleteError": "Could not delete site.",

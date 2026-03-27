@@ -31,7 +31,7 @@
 							</button>
 							<button
 								class="btn btn-outline-secondary"
-								:aria-label="`MQTT-Zugangsdaten für ${site.name}`"
+								:aria-label="$t('hub.sites.credentials.ariaLabel', { name: site.name })"
 								@click="openCredentials(site)"
 							>
 								MQTT

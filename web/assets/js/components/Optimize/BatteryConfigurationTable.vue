@@ -127,7 +127,7 @@ export default defineComponent({
 			if (detail?.capacity) {
 				const initialSocKWh = this.fmtWh(initialSocWh, this.POWER_UNIT.KW, false, 1);
 				const capacityKWh = this.fmtWh(detail.capacity * 1000, this.POWER_UNIT.KW, true, 1);
-				return `${initialSocKWh} of ${capacityKWh}`;
+				return `${initialSocKWh} ${this.$t('hub.debug.of')} ${capacityKWh}`;
 			}
 			return "-";
 		},
