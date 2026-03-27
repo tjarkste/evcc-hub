@@ -1,22 +1,29 @@
 <template>
-  <div class="container py-4" v-html="content" />
+  <div class="container py-4">
+    <p v-if="loading" class="text-muted">{{ $t('hub.legal.loading') }}</p>
+    <div v-else v-html="content" />
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
+import { defineComponent } from "vue";
+
 export default defineComponent({
   name: "Datenschutz",
-  setup() {
-    const content = ref('<p class="text-muted">Lädt...</p>');
-    onMounted(async () => {
-      try {
-        const res = await fetch("/legal/datenschutz.html");
-        if (res.ok) content.value = await res.text();
-      } catch {
-        // content bleibt als Fallback
-      }
-    });
-    return { content };
+  data() {
+    return {
+      loading: true,
+      content: "",
+    };
+  },
+  async mounted() {
+    try {
+      const res = await fetch("/legal/datenschutz.html");
+      if (res.ok) this.content = await res.text();
+    } catch {
+      // content remains empty on error
+    }
+    this.loading = false;
   },
 });
 </script>
