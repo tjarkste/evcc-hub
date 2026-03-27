@@ -146,7 +146,7 @@ export default defineComponent({
 		waitingForData(): boolean {
 			if (this.hasCachedState) return false;
 			if (this.$route.meta["noAuth"]) return false;
-			if (this.$route.path === '/overview') return false;
+			if (this.$route.meta["noDataRequired"]) return false;
 			return store.state.lastDataAt === null;
 		},
 	},

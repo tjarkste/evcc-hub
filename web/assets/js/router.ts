@@ -72,7 +72,7 @@ export default function setupRouter(i18n: VueI18nInstance) {
       { path: "/nutzungsbedingungen", component: () => import("./views/Nutzungsbedingungen.vue"), meta: { noAuth: true } },
       { path: "/login", component: LoginView, meta: { noAuth: true } },
       // Stub route — App.vue renders SiteOverview inline via v-if; route must exist for $router.push('/overview') to resolve
-      { path: "/overview", component: SiteOverview },
+      { path: "/overview", component: SiteOverview, meta: { noDataRequired: true } },
       { path: "/sites", component: SiteManager },
       {
         path: "/",
@@ -135,6 +135,7 @@ export default function setupRouter(i18n: VueI18nInstance) {
       {
         path: "/settings",
         component: () => import("./views/SettingsView.vue"),
+        meta: { noDataRequired: true },
       },
       {
         path: "/:pathMatch(.*)*",
