@@ -1,6 +1,6 @@
 <template>
 	<div class="container py-5" style="max-width: 700px;">
-		<h2 class="mb-4">Meine Standorte</h2>
+		<h2 class="mb-4">{{ $t('hub.sites.title') }}</h2>
 
 		<div class="row g-3">
 			<div
@@ -25,9 +25,9 @@
 								class="btn btn-primary flex-grow-1"
 								@click="$emit('select-site', site)"
 								:data-testid="`view-site-${site.id}`"
-								:aria-label="`${site.name} anzeigen`"
+								:aria-label="`${site.name} ${$t('hub.sites.view')}`"
 							>
-								Anzeigen
+								{{ $t('hub.sites.view') }}
 							</button>
 							<button
 								class="btn btn-outline-secondary"
@@ -39,7 +39,7 @@
 						</div>
 					</div>
 					<div v-if="site.id === selectedSiteId" class="card-footer text-muted small">
-						Aktiv
+						{{ $t('hub.sites.active') }}
 					</div>
 				</div>
 			</div>
@@ -47,7 +47,7 @@
 
 		<div class="mt-4">
 			<router-link to="/sites" class="btn btn-outline-secondary btn-sm">
-				Standorte verwalten
+				{{ $t('hub.sites.manageSites') }}
 			</router-link>
 		</div>
 

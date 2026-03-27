@@ -10,18 +10,18 @@
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 id="siteCredentialsModalLabel" class="modal-title">
-						MQTT-Zugangsdaten — {{ siteName }}
+						{{ $t('hub.sites.credentials.title', { siteName }) }}
 					</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
 					<p class="text-muted small mb-3">
-						Diese Daten brauchst du für die evcc-Konfiguration dieser Site.
+						{{ $t('hub.sites.credentials.description') }}
 					</p>
 
 					<div v-if="loading" class="text-center py-4">
 						<div class="spinner-border text-primary" role="status">
-							<span class="visually-hidden">Lädt…</span>
+							<span class="visually-hidden">{{ $t('hub.sites.credentials.loading') }}</span>
 						</div>
 					</div>
 
@@ -29,37 +29,37 @@
 
 					<template v-else-if="credentials">
 						<div class="mb-3">
-							<label class="form-label fw-semibold">Broker URL</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.brokerUrl') }}</label>
 							<div class="input-group">
 								<input type="text" class="form-control" :value="credentials.brokerUrl" readonly />
 								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.brokerUrl, 'brokerUrl')">
-									{{ copied === 'brokerUrl' ? 'Kopiert!' : 'Kopieren' }}
+									{{ copied === 'brokerUrl' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold">Broker Port</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.brokerPort') }}</label>
 							<div class="input-group">
 								<input type="text" class="form-control" :value="credentials.brokerPort" readonly />
 								<button class="btn btn-outline-secondary" type="button" @click="copy(String(credentials.brokerPort), 'brokerPort')">
-									{{ copied === 'brokerPort' ? 'Kopiert!' : 'Kopieren' }}
+									{{ copied === 'brokerPort' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold">MQTT-Benutzername</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.mqttUsername') }}</label>
 							<div class="input-group">
 								<input type="text" class="form-control" :value="credentials.mqttUsername" readonly />
 								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.mqttUsername, 'mqttUsername')">
-									{{ copied === 'mqttUsername' ? 'Kopiert!' : 'Kopieren' }}
+									{{ copied === 'mqttUsername' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold">MQTT-Passwort</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.mqttPassword') }}</label>
 							<div class="input-group">
 								<input
 									class="form-control"
@@ -68,27 +68,27 @@
 									readonly
 								/>
 								<button class="btn btn-outline-secondary" type="button" @click="showPassword = !showPassword">
-									{{ showPassword ? 'Verbergen' : 'Anzeigen' }}
+									{{ showPassword ? $t('hub.sites.credentials.hide') : $t('hub.sites.credentials.show') }}
 								</button>
 								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.mqttPassword, 'mqttPassword')">
-									{{ copied === 'mqttPassword' ? 'Kopiert!' : 'Kopieren' }}
+									{{ copied === 'mqttPassword' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 
 						<div class="mb-0">
-							<label class="form-label fw-semibold">Topic Prefix</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.topicPrefix') }}</label>
 							<div class="input-group">
 								<input type="text" class="form-control" :value="credentials.topicPrefix" readonly />
 								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.topicPrefix, 'topicPrefix')">
-									{{ copied === 'topicPrefix' ? 'Kopiert!' : 'Kopieren' }}
+									{{ copied === 'topicPrefix' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 					</template>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ $t('hub.sites.credentials.close') }}</button>
 				</div>
 			</div>
 		</div>
@@ -153,11 +153,11 @@ export default defineComponent({
 						Authorization: `Bearer ${token}`,
 					},
 				})
-				if (!resp.ok) throw new Error('Zugangsdaten konnten nicht geladen werden.')
+				if (!resp.ok) throw new Error(this.$t('hub.sites.credentials.loadError'))
 				const data = await resp.json()
 				this.credentials = data
 			} catch (err: any) {
-				this.error = err.message || 'Zugangsdaten konnten nicht geladen werden.'
+				this.error = err.message || this.$t('hub.sites.credentials.loadError')
 			} finally {
 				this.loading = false
 			}
