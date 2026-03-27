@@ -65,7 +65,7 @@
 			</li>
 			<li>
 				<router-link class="dropdown-item" to="/settings" active-class="active">
-					Profil & Einstellungen
+					{{ $t('hub.nav.profileSettings') }}
 				</router-link>
 			</li>
 			<li><hr class="dropdown-divider" /></li>
@@ -92,7 +92,7 @@
 
 			<li v-if="optimizeAvailable">
 				<router-link class="dropdown-item" to="/optimize" active-class="active">
-					Optimize 🧪
+					{{ $t('hub.nav.optimize') }}
 				</router-link>
 			</li>
 			<li><hr class="dropdown-divider" /></li>

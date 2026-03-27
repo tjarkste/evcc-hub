@@ -2,9 +2,9 @@
 <template>
   <slot v-if="!hasError" />
   <div v-else class="alert alert-warning m-3" role="alert" data-testid="error-boundary">
-    <strong>{{ section }} failed to render.</strong>
+    <strong>{{ section }} {{ $t('hub.error.failedToRender') }}</strong>
     <p class="mb-1 small">{{ errorMessage }}</p>
-    <button class="btn btn-sm btn-outline-secondary" @click="reset">Retry</button>
+    <button class="btn btn-sm btn-outline-secondary" @click="reset">{{ $t('hub.error.retry') }}</button>
   </div>
 </template>
 
@@ -24,7 +24,7 @@ export default defineComponent({
   },
   errorCaptured(err: Error) {
     this.hasError = true
-    this.errorMessage = err.message || 'Unknown error'
+    this.errorMessage = err.message || this.$t('hub.error.unknown')
     console.error(`[ErrorBoundary:${this.section}]`, err)
     return false
   },
