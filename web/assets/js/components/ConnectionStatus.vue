@@ -7,12 +7,6 @@
     role="status"
     data-testid="connection-status"
   >
-    <span
-      v-if="isReconnecting"
-      class="spinner-border spinner-border-sm"
-      role="status"
-      aria-hidden="true"
-    ></span>
     <span>{{ statusText }}</span>
     <span v-if="staleText" class="text-muted ms-1">{{ staleText }}</span>
   </div>
