@@ -958,6 +958,170 @@
     "restartDescription": "Schon versucht, das Gerät aus- und wieder einzuschalten?",
     "secondaryActions": "Noch keine Lösung gefunden? Hier sind noch ein paar weitere Möglichkeiten."
   },
+  "hub": {
+    "auth": {
+      "alreadyHaveAccount": "Bereits ein Konto? Anmelden",
+      "createFreeAccount": "Kostenlosen Account erstellen",
+      "emailPlaceholder": "E-Mail",
+      "loginButton": "Anmelden",
+      "loginFailed": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.",
+      "loggingIn": "Wird angemeldet...",
+      "noAccount": "Noch kein Konto? Registrieren",
+      "onboarding": {
+        "copied": "Kopiert!",
+        "copy": "Kopieren",
+        "step1Hint": "Falls noch nicht:",
+        "step1Link": "evcc installieren →",
+        "step1Title": "evcc installiert?",
+        "step2Hint": "Füge diese Zeilen in deine evcc.yaml ein:",
+        "step2Title": "MQTT-Konfiguration hinzufügen",
+        "step3Title": "evcc neu starten",
+        "subtitle": "Verbinde jetzt deine evcc-Instanz.",
+        "toDashboard": "Weiter zum Dashboard",
+        "title": "Konto erstellt!"
+      },
+      "openSource": "Open Source auf GitHub →",
+      "passwordPlaceholder": "Passwort",
+      "registerButton": "Registrieren",
+      "registerFailed": "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      "registering": "Wird registriert...",
+      "tagline": "Dein evcc-Dashboard, von überall erreichbar."
+    },
+    "connection": {
+      "offline": "Offline",
+      "reconnecting": "Verbinde...",
+      "staleMinutes": "(zuletzt aktualisiert vor {minutes}m)",
+      "staleSeconds": "(zuletzt aktualisiert vor {seconds}s)"
+    },
+    "debug": {
+      "battery": {
+        "battery": "Batterie",
+        "charge": "Laden",
+        "chargeDischarge": "Laden / Entladen",
+        "demandProfile": "Lastprofil",
+        "discharge": "Entladen",
+        "energyValue": "Energiewert",
+        "goals": "Ziele",
+        "gridInteraction": "Netzinteraktion",
+        "maxDischarge": "Max. Entladung",
+        "none": "Keine",
+        "powerRange": "Leistungsbereich",
+        "socGoals": "SoC-Ziele",
+        "socRange": "SoC-Bereich",
+        "stateOfCharge": "Ladestand",
+        "steps": "Schritte"
+      },
+      "energy": {
+        "nothingToSee": "nichts zu sehen",
+        "title": "Energie-Übersicht",
+        "wip": "Diese Seite befindet sich in Arbeit."
+      },
+      "optimize": {
+        "batteryInput": "Eingabe: Batterie",
+        "chargeEfficiency": "Ladeeffizienz",
+        "chargingPlanResult": "Ergebnis: Ladeplan",
+        "description": "Diese Seite ist nur für Entwicklungszwecke. Gibt Einblicke in den kommenden Optimierungsalgorithmus.",
+        "dischargeEfficiency": "Entladeeffizienz",
+        "gridPricesInput": "Eingabe: Netzpreise",
+        "nothingToSee": "nichts zu sehen",
+        "rawData": "Rohdaten",
+        "request": "Anfrage:",
+        "response": "Antwort:",
+        "saved": "gespart",
+        "socProjectionResult": "Ergebnis: SoC-Projektion",
+        "timeSeries": "Zeitreihe",
+        "title": "Optimize Debug"
+      }
+    },
+    "energyflow": {
+      "in": "Einspeisung",
+      "out": "Bezug"
+    },
+    "error": {
+      "failedToRender": "failed to render.",
+      "retry": "Wiederholen",
+      "unknown": "Unbekannter Fehler"
+    },
+    "help": {
+      "hubGithub": "evcc Hub auf GitHub"
+    },
+    "issue": {
+      "loadApiConfigError": "API-Konfiguration konnte nicht geladen werden",
+      "loadConfigError": "Konfiguration konnte nicht geladen werden",
+      "loadLogsError": "Logs konnten nicht geladen werden",
+      "loadStateError": "Systemstatus konnte nicht geladen werden",
+      "englishNote": "Bitte schreibe dein Issue auf Englisch, damit alle mitmachen können.",
+      "titlePlaceholder": "Kurze Beschreibung des Problems"
+    },
+    "legal": {
+      "loading": "Lädt..."
+    },
+    "nav": {
+      "optimize": "Optimize 🧪",
+      "profileSettings": "Profil & Einstellungen"
+    },
+    "settings": {
+      "accountSection": "Konto",
+      "changePassword": "Passwort ändern",
+      "confirmPassword": "Neues Passwort bestätigen",
+      "currentPassword": "Aktuelles Passwort",
+      "emailLabel": "E-Mail-Adresse",
+      "loading": "Lädt...",
+      "logout": "Abmelden",
+      "newPassword": "Neues Passwort",
+      "passwordChangeError": "Passwort konnte nicht geändert werden.",
+      "passwordMismatch": "Die neuen Passwörter stimmen nicht überein.",
+      "passwordSuccess": "Passwort erfolgreich geändert. Du wirst in Kürze abgemeldet…",
+      "profileLoadError": "Profil konnte nicht geladen werden.",
+      "registeredSince": "Registriert seit",
+      "savePassword": "Passwort speichern",
+      "saving": "Speichern…",
+      "title": "Profil & Einstellungen"
+    },
+    "sites": {
+      "active": "Aktiv",
+      "add": "Hinzufügen",
+      "addSite": "Neuen Standort hinzufügen",
+      "adding": "...",
+      "backToDashboard": "Zurück zum Dashboard",
+      "copy": "Kopieren",
+      "copied": "Kopiert!",
+      "createError": "Standort konnte nicht erstellt werden.",
+      "credentials": {
+        "brokerPort": "Broker Port",
+        "brokerUrl": "Broker URL",
+        "close": "Schließen",
+        "copied": "Kopiert!",
+        "copy": "Kopieren",
+        "description": "Diese Daten brauchst du für die evcc-Konfiguration dieser Site.",
+        "hide": "Verbergen",
+        "loadError": "Zugangsdaten konnten nicht geladen werden.",
+        "loading": "Lädt…",
+        "mqttPassword": "MQTT-Passwort",
+        "mqttUsername": "MQTT-Benutzername",
+        "show": "Anzeigen",
+        "title": "MQTT-Zugangsdaten — {siteName}",
+        "topicPrefix": "Topic Prefix"
+      },
+      "delete": "Löschen",
+      "deleteError": "Standort konnte nicht gelöscht werden.",
+      "loadError": "Standorte konnten nicht geladen werden.",
+      "manageSites": "Standorte verwalten",
+      "mqttConfigHint": "Füge diese Zeilen in deine evcc.yaml ein:",
+      "namePlaceholder": "Name (z.B. Ferienhaus)",
+      "select": "Auswählen",
+      "siteCreatedSuffix": "wurde erstellt.",
+      "title": "Meine Standorte",
+      "view": "Anzeigen"
+    },
+    "waiting": {
+      "connecting": "Verbinde mit MQTT-Broker...",
+      "loading": "Laden...",
+      "noData": "Keine Daten empfangen.",
+      "noDataHint": "Ist deine evcc-Instanz online und korrekt konfiguriert?",
+      "waitingForData": "Verbunden — warte auf Daten von deiner evcc-Instanz..."
+    }
+  },
   "issue": {
     "additional": {
       "description": "Konfiguration und Logs hinzufügen, um uns bei der schnellen Reproduktion zu helfen. Wir empfehlen, so viele Informationen wie möglich zu teilen. Zustand ist normalerweise nicht erforderlich.",
