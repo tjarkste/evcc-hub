@@ -1,22 +1,22 @@
 <template>
 	<div class="container py-5" style="max-width: 600px;">
-		<h2 class="mb-4">Profil & Einstellungen</h2>
+		<h2 class="mb-4">{{ $t('hub.settings.title') }}</h2>
 
 		<!-- Account Info -->
 		<div class="card mb-4">
 			<div class="card-header">
-				<h5 class="mb-0">Konto</h5>
+				<h5 class="mb-0">{{ $t('hub.settings.accountSection') }}</h5>
 			</div>
 			<div class="card-body">
-				<div v-if="profileLoading" class="text-muted">Lädt...</div>
+				<div v-if="profileLoading" class="text-muted">{{ $t('hub.settings.loading') }}</div>
 				<div v-else-if="profileError" class="alert alert-danger">{{ profileError }}</div>
 				<template v-else>
 					<div class="mb-3">
-						<label class="form-label fw-semibold">E-Mail-Adresse</label>
+						<label class="form-label fw-semibold">{{ $t('hub.settings.emailLabel') }}</label>
 						<input type="email" class="form-control" :value="profile.email" readonly />
 					</div>
 					<div class="mb-0">
-						<label class="form-label fw-semibold">Registriert seit</label>
+						<label class="form-label fw-semibold">{{ $t('hub.settings.registeredSince') }}</label>
 						<input type="text" class="form-control" :value="formattedCreatedAt" readonly />
 					</div>
 				</template>
@@ -26,16 +26,16 @@
 		<!-- Change Password -->
 		<div class="card mb-4">
 			<div class="card-header">
-				<h5 class="mb-0">Passwort ändern</h5>
+				<h5 class="mb-0">{{ $t('hub.settings.changePassword') }}</h5>
 			</div>
 			<div class="card-body">
 				<div v-if="passwordSuccess" class="alert alert-success">
-					Passwort erfolgreich geändert. Du wirst in Kürze abgemeldet…
+					{{ $t('hub.settings.passwordSuccess') }}
 				</div>
 				<div v-if="passwordError" class="alert alert-danger">{{ passwordError }}</div>
 				<form @submit.prevent="changePassword">
 					<div class="mb-3">
-						<label for="currentPassword" class="form-label">Aktuelles Passwort</label>
+						<label for="currentPassword" class="form-label">{{ $t('hub.settings.currentPassword') }}</label>
 						<input
 							id="currentPassword"
 							v-model="currentPassword"
@@ -46,7 +46,7 @@
 						/>
 					</div>
 					<div class="mb-3">
-						<label for="newPassword" class="form-label">Neues Passwort</label>
+						<label for="newPassword" class="form-label">{{ $t('hub.settings.newPassword') }}</label>
 						<input
 							id="newPassword"
 							v-model="newPassword"
@@ -57,7 +57,7 @@
 						/>
 					</div>
 					<div class="mb-3">
-						<label for="confirmPassword" class="form-label">Neues Passwort bestätigen</label>
+						<label for="confirmPassword" class="form-label">{{ $t('hub.settings.confirmPassword') }}</label>
 						<input
 							id="confirmPassword"
 							v-model="confirmPassword"
@@ -72,7 +72,7 @@
 						class="btn btn-primary"
 						:disabled="passwordSaving"
 					>
-						{{ passwordSaving ? 'Speichern…' : 'Passwort speichern' }}
+						{{ passwordSaving ? $t('hub.settings.saving') : $t('hub.settings.savePassword') }}
 					</button>
 				</form>
 			</div>
@@ -81,7 +81,7 @@
 		<!-- Logout -->
 		<div class="text-end">
 			<button type="button" class="btn btn-outline-danger" @click="handleLogout">
-				Abmelden
+				{{ $t('hub.settings.logout') }}
 			</button>
 		</div>
 	</div>
@@ -114,7 +114,7 @@ export default defineComponent({
 	computed: {
 		formattedCreatedAt(): string {
 			if (!this.profile.createdAt) return ''
-			return new Date(this.profile.createdAt).toLocaleDateString('de-DE', {
+			return new Date(this.profile.createdAt).toLocaleDateString(this.$i18n.locale, {
 				year: 'numeric',
 				month: 'long',
 				day: 'numeric',
@@ -136,11 +136,11 @@ export default defineComponent({
 						Authorization: `Bearer ${token}`,
 					},
 				})
-				if (!resp.ok) throw new Error('Profil konnte nicht geladen werden.')
+				if (!resp.ok) throw new Error(this.$t('hub.settings.profileLoadError'))
 				const data = await resp.json()
 				this.profile = data
 			} catch (err: any) {
-				this.profileError = err.message || 'Profil konnte nicht geladen werden.'
+				this.profileError = err.message || this.$t('hub.settings.profileLoadError')
 			} finally {
 				this.profileLoading = false
 			}
@@ -150,7 +150,7 @@ export default defineComponent({
 			this.passwordSuccess = false
 
 			if (this.newPassword !== this.confirmPassword) {
-				this.passwordError = 'Die neuen Passwörter stimmen nicht überein.'
+				this.passwordError = this.$t('hub.settings.passwordMismatch')
 				return
 			}
 
@@ -170,7 +170,7 @@ export default defineComponent({
 				})
 				if (!resp.ok) {
 					const data = await resp.json().catch(() => ({}))
-					throw new Error(data.error || 'Passwort konnte nicht geändert werden.')
+					throw new Error(data.error || this.$t('hub.settings.passwordChangeError'))
 				}
 				this.passwordSuccess = true
 				this.currentPassword = ''
@@ -181,7 +181,7 @@ export default defineComponent({
 					this.$router.push('/login')
 				}, 2000)
 			} catch (err: any) {
-				this.passwordError = err.message || 'Passwort konnte nicht geändert werden.'
+				this.passwordError = err.message || this.$t('hub.settings.passwordChangeError')
 			} finally {
 				this.passwordSaving = false
 			}
