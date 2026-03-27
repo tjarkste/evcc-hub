@@ -4,15 +4,15 @@
 			<table class="table">
 				<thead>
 					<tr>
-						<th scope="col">Battery</th>
-						<th scope="col">State of Charge</th>
-						<th scope="col">SoC Range</th>
-						<th scope="col">Energy Value</th>
-						<th scope="col">Power Range</th>
-						<th scope="col">Max Discharge</th>
-						<th scope="col">Grid Interaction</th>
-						<th scope="col">Demand Profile</th>
-						<th scope="col">SoC Goals</th>
+						<th scope="col">{{ $t('hub.debug.battery.battery') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.stateOfCharge') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.socRange') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.energyValue') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.powerRange') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.maxDischarge') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.gridInteraction') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.demandProfile') }}</th>
+						<th scope="col">{{ $t('hub.debug.battery.socGoals') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -45,15 +45,15 @@
 						</td>
 						<td>
 							<span v-if="battery.p_demand?.length" class="badge bg-info">
-								{{ battery.p_demand.length }} steps
+								{{ battery.p_demand.length }} {{ $t('hub.debug.battery.steps') }}
 							</span>
-							<span v-else class="text-muted">None</span>
+							<span v-else class="text-muted">{{ $t('hub.debug.battery.none') }}</span>
 						</td>
 						<td>
 							<span v-if="battery.s_goal?.length" class="badge bg-warning">
-								{{ battery.s_goal.length }} goals
+								{{ battery.s_goal.length }} {{ $t('hub.debug.battery.goals') }}
 							</span>
-							<span v-else class="text-muted">None</span>
+							<span v-else class="text-muted">{{ $t('hub.debug.battery.none') }}</span>
 						</td>
 					</tr>
 				</tbody>
@@ -161,13 +161,13 @@ export default defineComponent({
 			const canDischarge = battery.discharge_to_grid;
 
 			if (canCharge && canDischarge) {
-				return "Charge / Discharge";
+				return this.$t("hub.debug.battery.chargeDischarge");
 			} else if (canCharge) {
-				return "Charge";
+				return this.$t("hub.debug.battery.charge");
 			} else if (canDischarge) {
-				return "Discharge";
+				return this.$t("hub.debug.battery.discharge");
 			} else {
-				return "None";
+				return this.$t("hub.debug.battery.none");
 			}
 		},
 	},

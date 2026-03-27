@@ -1,9 +1,8 @@
 <template>
 	<div class="container px-4 safe-area-inset">
-		<TopHeader title="Optimize Debug" />
+		<TopHeader :title="$t('hub.debug.optimize.title')" />
 		<div class="alert alert-light mb-5">
-			This page is for development purposes only. Gives insights into the upcoming
-			optimization algorithm.
+			{{ $t('hub.debug.optimize.description') }}
 		</div>
 		<div class="row">
 			<main class="col-12">
@@ -13,7 +12,7 @@
 						<h3
 							class="fw-normal d-flex gap-3 flex-wrap d-flex align-items-baseline overflow-hidden mb-4"
 						>
-							<span class="d-block no-wrap text-truncate">Result: Charging Plan</span>
+							<span class="d-block no-wrap text-truncate">{{ $t('hub.debug.optimize.chargingPlanResult') }}</span>
 							<small class="d-block no-wrap text-truncate">
 								{{ evopt.res.status }} ・
 								{{
@@ -24,7 +23,7 @@
 										true
 									)
 								}}
-								saved
+								{{ $t('hub.debug.optimize.saved') }}
 							</small>
 						</h3>
 						<ChargeChart
@@ -35,7 +34,7 @@
 							:battery-colors="batteryColors"
 						/>
 
-						<h3 class="fw-normal mb-4">Result: SoC Projection</h3>
+						<h3 class="fw-normal mb-4">{{ $t('hub.debug.optimize.socProjectionResult') }}</h3>
 						<SocChart
 							:evopt="evopt"
 							:battery-details="evopt.details.batteryDetails"
@@ -47,7 +46,7 @@
 
 					<!-- Input Parameters -->
 					<section class="mb-5">
-						<h3 class="fw-normal mb-4">Input: Grid Prices</h3>
+						<h3 class="fw-normal mb-4">{{ $t('hub.debug.optimize.gridPricesInput') }}</h3>
 						<PriceChart
 							:evopt="evopt"
 							:timestamp="evopt.details.timestamp[0]"
@@ -57,12 +56,10 @@
 						<h3
 							class="fw-normal d-flex gap-3 flex-wrap d-flex align-items-baseline overflow-hidden mb-4"
 						>
-							<span class="d-block no-wrap text-truncate"> Input: Battery </span>
+							<span class="d-block no-wrap text-truncate">{{ $t('hub.debug.optimize.batteryInput') }}</span>
 							<small class="d-block no-wrap text-truncate">
-								{{ fmtPercentage((evopt.req.eta_c || 1) * 100, 1) }} charge
-								efficiency ・
-								{{ fmtPercentage((evopt.req.eta_d || 1) * 100, 1) }} discharge
-								efficiency
+								{{ fmtPercentage((evopt.req.eta_c || 1) * 100, 1) }} {{ $t('hub.debug.optimize.chargeEfficiency') }} ・
+								{{ fmtPercentage((evopt.req.eta_d || 1) * 100, 1) }} {{ $t('hub.debug.optimize.dischargeEfficiency') }}
 							</small>
 						</h3>
 
@@ -77,7 +74,7 @@
 
 					<!-- Debugging -->
 					<section class="mb-5">
-						<h3 class="fw-normal mb-4">Time Series</h3>
+						<h3 class="fw-normal mb-4">{{ $t('hub.debug.optimize.timeSeries') }}</h3>
 
 						<TimeSeriesDataTable
 							:evopt="evopt"
@@ -88,10 +85,10 @@
 							:dimmed-battery-colors="dimmedBatteryColors"
 						/>
 
-						<h3 class="fw-normal mb-4">Raw Data</h3>
+						<h3 class="fw-normal mb-4">{{ $t('hub.debug.optimize.rawData') }}</h3>
 
 						<div class="mb-4">
-							<p class="mb-2">Request:</p>
+							<p class="mb-2">{{ $t('hub.debug.optimize.request') }}</p>
 							<div class="position-relative">
 								<pre
 									class="p-3 rounded border overflow-auto"
@@ -103,7 +100,7 @@
 						</div>
 
 						<div class="mb-4">
-							<p class="mb-2">Response:</p>
+							<p class="mb-2">{{ $t('hub.debug.optimize.response') }}</p>
 							<div class="position-relative">
 								<pre
 									class="p-3 rounded border overflow-auto"
@@ -116,7 +113,7 @@
 					</section>
 				</div>
 				<div v-else>
-					<p>nothing to see here</p>
+					<p>{{ $t('hub.debug.optimize.nothingToSee') }}</p>
 				</div>
 			</main>
 		</div>
@@ -151,7 +148,7 @@ export default defineComponent({
 	},
 	mixins: [formatter],
 	head() {
-		return { title: "Optimize Debug" };
+		return { title: this.$t("hub.debug.optimize.title") };
 	},
 	computed: {
 		evopt() {

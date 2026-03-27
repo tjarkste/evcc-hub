@@ -61,7 +61,7 @@
 					</div>
 
 					<p class="text-muted mb-4">
-						🇬🇧 Please write your issue in English so everyone can participate.
+						{{ $t('hub.issue.englishNote') }}
 					</p>
 
 					<!-- Two Column Layout -->
@@ -77,7 +77,7 @@
 									v-model="issue.title"
 									type="text"
 									class="form-control"
-									placeholder="Brief description of the problem"
+									:placeholder="$t('hub.issue.titlePlaceholder')"
 									required
 								/>
 							</div>
@@ -484,7 +484,7 @@ export default defineComponent({
 					.join("\n");
 			} catch (error: any) {
 				console.error("Failed to fetch config:", error);
-				this.sections.yamlConfig.content = "Failed to load configuration";
+				this.sections.yamlConfig.content = this.$t('hub.issue.loadConfigError');
 			}
 		},
 
@@ -552,7 +552,7 @@ export default defineComponent({
 				this.sections.uiConfig.content = formatJson(configs, EXPAND_KEYS);
 			} catch (error) {
 				console.error("Failed to fetch API config:", error);
-				this.sections.uiConfig.content = "Failed to load API configuration";
+				this.sections.uiConfig.content = this.$t('hub.issue.loadApiConfigError');
 			}
 		},
 
@@ -572,7 +572,7 @@ export default defineComponent({
 					.join("\n");
 			} catch (error) {
 				console.error("Failed to fetch logs:", error);
-				this.sections.logs.content = "Failed to load logs";
+				this.sections.logs.content = this.$t('hub.issue.loadLogsError');
 			}
 		},
 
@@ -591,7 +591,7 @@ export default defineComponent({
 				this.sections.state.content = formatJson(response.data, EXPAND_KEYS);
 			} catch (error) {
 				console.error("Failed to fetch state:", error);
-				this.sections.state.content = "Failed to load system state";
+				this.sections.state.content = this.$t('hub.issue.loadStateError');
 			}
 		},
 
