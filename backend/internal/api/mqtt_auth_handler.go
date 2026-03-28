@@ -74,7 +74,7 @@ func CheckACL(credType storage.MQTTCredentialType, topicPrefix, userID, topic st
 			return false
 		}
 		switch acc {
-		case 1: // read
+		case 1, 4: // read, subscribe
 			return true
 		case 2: // write
 			return strings.HasSuffix(topic, "/set")

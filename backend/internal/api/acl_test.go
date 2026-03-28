@@ -41,6 +41,7 @@ func TestCheckACL_UserCredentials(t *testing.T) {
 		expect bool
 	}{
 		{"read own site", "user/u1/site/s1/evcc/site/pvPower", 1, true},
+		{"subscribe own site", "user/u1/site/s1/evcc/#", 4, true},
 		{"read another own site", "user/u1/site/s2/evcc/site/pvPower", 1, true},
 		{"write /set topic", "user/u1/site/s1/evcc/loadpoints/1/mode/set", 2, true},
 		{"deny write non-set topic", "user/u1/site/s1/evcc/loadpoints/1/mode", 2, false},
