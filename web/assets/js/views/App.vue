@@ -75,7 +75,7 @@ import collector from "../mixins/collector";
 import { defineComponent } from "vue";
 import { connectMqtt, disconnectMqtt, subscribeSite, getCachedTopicPrefix } from "../services/mqtt";
 import { loadStateCache } from "../services/stateCache";
-import { getStoredAuth, scheduleTokenRefresh, stopTokenRefresh } from "../services/auth";
+import { getStoredAuth, refreshAccessToken, scheduleTokenRefresh, stopTokenRefresh } from "../services/auth";
 import { fetchSites, getSelectedSiteId, setSelectedSiteId } from "../services/sites";
 import type { Site } from "../services/sites";
 
@@ -175,12 +175,20 @@ export default defineComponent({
 			this.hasCachedState = true;
 		}
 
+		// Refresh the access token immediately on page load — it may have expired
+		// while the page was closed. scheduleTokenRefresh() only covers future expiry.
+		const refreshed = await refreshAccessToken();
+		const currentAuth = refreshed ?? auth;
+		if (!currentAuth) {
+			this.$router.push('/login');
+			return;
+		}
 		scheduleTokenRefresh();
 
 		connectMqtt({
 			brokerUrl: import.meta.env.VITE_MQTT_WSS_URL || 'wss://evcc-hub.de/mqtt',
-			username: auth.mqttUsername,
-			password: auth.mqttPassword,
+			username: currentAuth.mqttUsername,
+			password: currentAuth.mqttPassword,
 		});
 
 		// Fetch sites and subscribe; fall back to cached topic if backend is unreachable
