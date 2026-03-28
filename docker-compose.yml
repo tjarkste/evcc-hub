@@ -6,6 +6,7 @@ services:
       - "9001:9001"
     volumes:
       - ./deploy/mosquitto/mosquitto.conf:/etc/mosquitto/mosquitto.conf
+      - ./deploy/mosquitto/conf.d:/etc/mosquitto/conf.d
       - ./deploy/mosquitto/certs:/mosquitto/certs
 
   postgres:
