@@ -127,6 +127,41 @@ describe('mqttToStoreUpdate', () => {
     )
     expect(result).toBeNull()
   })
+
+  test('site/pv count topic is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/site/pv', '1', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('site/aux count topic is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/site/aux', '0', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('site/ext count topic is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/site/ext', '0', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('site/loadpoints count topic is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/site/loadpoints', '2', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('site/battery count topic is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/site/battery', '1', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
 })
 
 describe('calculateBackoff', () => {

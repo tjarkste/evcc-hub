@@ -582,7 +582,9 @@ export default defineComponent({
 			});
 		},
 		consumers() {
-			return [...this.aux, ...this.ext];
+			const aux = Array.isArray(this.aux) ? this.aux : [];
+			const ext = Array.isArray(this.ext) ? this.ext : [];
+			return [...aux, ...ext];
 		},
 		batteryForecastFull(): string | undefined {
 			return this.fmtForecast(this.battery?.forecast, true);

@@ -180,6 +180,12 @@ const SITE_REMAP: Record<string, string> = {
   batteryForecast: 'battery.forecast',
 }
 
+// evcc also publishes site-level count topics: site/pv=1, site/aux=0, etc.
+// These are integers representing how many devices exist. Storing them would
+// overwrite the corresponding arrays (state.pv, state.aux, state.ext, …) with
+// a plain number, breaking any spread/iteration on those arrays.
+const SITE_COUNT_FIELDS = new Set(['pv', 'aux', 'ext', 'loadpoints', 'battery'])
+
 /**
  * Konvertiert eine MQTT-Message in ein Store-Update-Objekt.
  *
@@ -210,6 +216,9 @@ export function mqttToStoreUpdate(
     storeKey = `loadpoints.${storeIndex}.${field}`
   } else if (parts[0] === 'site' && parts.length >= 2) {
     const siteField = parts.slice(1).join('.')
+    // Skip count topics like site/pv=1, site/aux=0 — these are integers, not
+    // data objects, and must not overwrite the pv[] / aux[] / ext[] arrays.
+    if (SITE_COUNT_FIELDS.has(siteField)) return null
     storeKey = SITE_REMAP[siteField] ?? siteField
   } else if (parts[0] === 'battery' && parts.length >= 3) {
     // battery/N/field → battery.devices.(N-1).field
