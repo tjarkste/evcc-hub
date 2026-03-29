@@ -8,7 +8,7 @@ services:
     volumes:
       - ./deploy/mosquitto/mosquitto.conf:/etc/mosquitto/mosquitto.conf
       - ./deploy/mosquitto/conf.d:/etc/mosquitto/conf.d
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./certs:/mosquitto/certs:ro
 
   postgres:
     image: postgres:16-alpine
@@ -62,7 +62,8 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'"
+      - ./certs:/opt/certs
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; cp /etc/letsencrypt/live/evcc-hub.de/fullchain.pem /opt/certs/fullchain.pem; cp /etc/letsencrypt/live/evcc-hub.de/privkey.pem /opt/certs/privkey.pem; sleep 12h & wait $${!}; done'"
     restart: unless-stopped
 
 volumes:
