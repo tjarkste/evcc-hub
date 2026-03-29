@@ -1,6 +1,7 @@
 services:
   mosquitto:
     image: iegomez/mosquitto-go-auth:latest
+    user: root
     ports:
       - "8883:8883"
       - "9001:9001"
