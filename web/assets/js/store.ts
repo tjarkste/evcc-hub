@@ -7,22 +7,48 @@ import settings from "./settings";
 
 function setProperty(obj: object, props: string[], value: any) {
   const prop = props.shift();
-  // @ts-expect-error no-explicit-any
-  if (!obj[prop]) {
-    const nextKey = props[0];
-    // @ts-expect-error no-explicit-any
-    obj[prop] = nextKey !== undefined && /^\d+$/.test(nextKey) ? [] : {};
-  }
 
   if (!props.length) {
+    // Leaf node — set or merge the final value.
+    //
+    // Leaf guard: never overwrite an existing array or plain-object with a
+    // primitive. evcc publishes count topics like site/pv=1 and
+    // site/loadpoints=1 that must not corrupt the pv[] / loadpoints[] arrays.
+    // @ts-expect-error no-explicit-any
+    const existing = obj[prop];
+    const incomingIsPrimitive = value === null || typeof value !== "object";
+    const existingIsContainer =
+      existing !== null && existing !== undefined && typeof existing === "object";
+    if (incomingIsPrimitive && existingIsContainer) {
+      return; // preserve the array / object
+    }
+
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      // @ts-expect-error no-explicit-any
-      obj[prop] = { ...obj[prop], ...value };
+      // Merge plain objects; replace if existing is an array or absent.
+      if (existingIsContainer && !Array.isArray(existing)) {
+        // @ts-expect-error no-explicit-any
+        obj[prop] = { ...existing, ...value };
+      } else {
+        // @ts-expect-error no-explicit-any
+        obj[prop] = value;
+      }
     } else {
       // @ts-expect-error no-explicit-any
       obj[prop] = value;
     }
     return;
+  }
+
+  // Intermediate node — must recurse deeper.
+  //
+  // Recursion guard: if the slot is missing or holds a primitive (e.g. a count
+  // topic like site/pv=1 wrote a number here before array data arrived),
+  // replace it with the correct container type before recursing.
+  // @ts-expect-error no-explicit-any
+  if (!obj[prop] || typeof obj[prop] !== "object") {
+    const nextKey = props[0];
+    // @ts-expect-error no-explicit-any
+    obj[prop] = /^\d+$/.test(nextKey) ? [] : {};
   }
 
   // @ts-expect-error no-explicit-any
