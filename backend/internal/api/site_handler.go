@@ -132,7 +132,7 @@ func (h *siteHandler) GetSiteCredentials(c *gin.Context) {
 
 	brokerURL := os.Getenv("MQTT_BROKER_PUBLIC_URL")
 	if brokerURL == "" {
-		brokerURL = "mqtt.evcc-hub.de"
+		brokerURL = "evcc-hub.de"
 	}
 
 	c.JSON(http.StatusOK, SiteCredentialsResponse{

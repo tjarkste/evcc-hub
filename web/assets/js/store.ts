@@ -9,8 +9,9 @@ function setProperty(obj: object, props: string[], value: any) {
   const prop = props.shift();
   // @ts-expect-error no-explicit-any
   if (!obj[prop]) {
+    const nextKey = props[0];
     // @ts-expect-error no-explicit-any
-    obj[prop] = {};
+    obj[prop] = nextKey !== undefined && /^\d+$/.test(nextKey) ? [] : {};
   }
 
   if (!props.length) {

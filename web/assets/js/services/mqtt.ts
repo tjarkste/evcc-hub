@@ -187,5 +187,9 @@ export function parsePayload(raw: string): unknown {
   if (raw === 'false') return false
   if (raw === '' || raw === 'nil' || raw === 'null') return null
   const num = Number(raw)
-  return isNaN(num) ? raw : num
+  if (!isNaN(num)) return num
+  if (raw.startsWith('[') || raw.startsWith('{')) {
+    try { return JSON.parse(raw) } catch {}
+  }
+  return raw
 }
