@@ -106,6 +106,27 @@ describe('mqttToStoreUpdate', () => {
     )
     expect(result).toBeNull()
   })
+
+  test('pv/1 count topic (no subfield) is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/pv/1', '1', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('loadpoints/1 count topic (no subfield) is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/loadpoints/1', '1', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
+
+  test('battery/1 count topic (no subfield) is ignored', () => {
+    const result = mqttToStoreUpdate(
+      'user/abc/evcc/battery/1', '1', 'user/abc/evcc'
+    )
+    expect(result).toBeNull()
+  })
 })
 
 describe('calculateBackoff', () => {

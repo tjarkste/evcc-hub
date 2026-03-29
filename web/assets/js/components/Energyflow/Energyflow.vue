@@ -99,7 +99,7 @@
 								<EnergyflowEntry
 									v-for="(p, index) in pv"
 									:key="index"
-									:name="p.title || genericPvTitle(index)"
+									:name="p?.title || genericPvTitle(index)"
 									:power="p.power"
 									:powerUnit="powerUnit"
 									:data-testid="`energyflow-entry-production-${index}`"
@@ -150,7 +150,7 @@
 									<EnergyflowEntry
 										v-for="(b, index) in batteryDevices"
 										:key="index"
-										:name="b.title || genericBatteryTitle(index)"
+										:name="b?.title || genericBatteryTitle(index)"
 										:details="b.soc"
 										:detailsFmt="batteryFmt"
 										:power="dischargePower(b.power)"
@@ -308,7 +308,7 @@
 									<EnergyflowEntry
 										v-for="(b, index) in batteryDevices"
 										:key="index"
-										:name="b.title || genericBatteryTitle(index)"
+										:name="b?.title || genericBatteryTitle(index)"
 										:details="b.soc"
 										:detailsFmt="batteryFmt"
 										:power="chargePower(b.power)"

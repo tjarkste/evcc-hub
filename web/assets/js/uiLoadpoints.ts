@@ -14,7 +14,7 @@ export const convertToUiLoadpoints = (
 ): UiLoadpoint[] => {
   if (loadpoints.length === 0) return [];
 
-  const mappedLoadpoints = loadpoints.map((lp, originalIndex) => {
+  const mappedLoadpoints = loadpoints.filter((lp) => lp != null).map((lp, originalIndex) => {
     const vehicle = vehicles[lp.vehicleName];
     const id = `${originalIndex + 1}`;
 

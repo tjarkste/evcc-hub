@@ -221,6 +221,11 @@ export function mqttToStoreUpdate(
     const storeIndex = parseInt(parts[1]) - 1
     const field = parts.slice(2).join('.')
     storeKey = `${parts[0]}.${storeIndex}.${field}`
+  } else if (['loadpoints', 'pv', 'battery', 'aux', 'ext'].includes(parts[0])) {
+    // Short-path count topics like pv/1, loadpoints/1, battery/1 — no subfield.
+    // Ignore them; they carry only a count integer and must not create
+    // wrong-indexed sparse array holes in the store.
+    return null
   } else {
     storeKey = parts.join('.')
   }

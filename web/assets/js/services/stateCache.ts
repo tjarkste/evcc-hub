@@ -1,7 +1,7 @@
 // web/assets/js/services/stateCache.ts
 import type { State } from '../types/evcc'
 
-export const CACHE_KEY = 'evcc-cloud-state-cache'
+export const CACHE_KEY = 'evcc-cloud-state-cache-v2'
 
 const EXCLUDED_KEYS = ['offline', 'connectionState', 'lastDataAt']
 
