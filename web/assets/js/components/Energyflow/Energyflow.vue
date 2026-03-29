@@ -100,7 +100,7 @@
 									v-for="(p, index) in pv"
 									:key="index"
 									:name="p?.title || genericPvTitle(index)"
-									:power="p.power"
+									:power="p?.power"
 									:powerUnit="powerUnit"
 									:data-testid="`energyflow-entry-production-${index}`"
 								/>
@@ -151,9 +151,9 @@
 										v-for="(b, index) in batteryDevices"
 										:key="index"
 										:name="b?.title || genericBatteryTitle(index)"
-										:details="b.soc"
+										:details="b?.soc"
 										:detailsFmt="batteryFmt"
-										:power="dischargePower(b.power)"
+										:power="dischargePower(b?.power)"
 										:powerUnit="powerUnit"
 									/>
 								</template>
@@ -201,12 +201,12 @@
 									<EnergyflowEntry
 										v-for="(c, index) in consumers"
 										:key="index"
-										:name="c.title || genericConsumerTitle(index)"
-										:power="c.power"
+										:name="c?.title || genericConsumerTitle(index)"
+										:power="c?.power"
 										:powerUnit="powerUnit"
 										icon="vehicle"
 										data-testid="energyflow-entry-consumer"
-										:iconProps="{ names: [c.icon || 'generic'] }"
+										:iconProps="{ names: [c?.icon || 'generic'] }"
 									/>
 								</template>
 							</EnergyflowEntry>
@@ -233,14 +233,14 @@
 									<EnergyflowEntry
 										v-for="lp in activeLoadpoints"
 										:key="lp.id"
-										:name="lp.displayTitle"
-										:power="lp.chargePower"
+										:name="lp?.displayTitle"
+										:power="lp?.chargePower"
 										:powerUnit="powerUnit"
 										icon="vehicle"
-										:iconProps="{ names: [lp.icon] }"
-										:details="lp.vehicleSoc || undefined"
+										:iconProps="{ names: [lp?.icon] }"
+										:details="lp?.vehicleSoc || undefined"
 										:detailsFmt="
-											lp.chargerFeatureHeating
+											lp?.chargerFeatureHeating
 												? fmtLoadpointTemp
 												: fmtLoadpointSoc
 										"
@@ -309,9 +309,9 @@
 										v-for="(b, index) in batteryDevices"
 										:key="index"
 										:name="b?.title || genericBatteryTitle(index)"
-										:details="b.soc"
+										:details="b?.soc"
 										:detailsFmt="batteryFmt"
-										:power="chargePower(b.power)"
+										:power="chargePower(b?.power)"
 										:powerUnit="powerUnit"
 									/>
 								</template>
