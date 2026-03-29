@@ -147,8 +147,27 @@ export function getTopicPrefix(): string {
   return currentTopicPrefix
 }
 
+// evcc publishes flat site-level topics (e.g. site/gridPower, site/batteryPower),
+// but the frontend State / Site.vue expect nested objects (grid.power, battery.power).
+// This map translates the flat MQTT field name to the nested store key path.
+const SITE_REMAP: Record<string, string> = {
+  gridPower: 'grid.power',
+  batteryPower: 'battery.power',
+  batterySoc: 'battery.soc',
+  batteryCapacity: 'battery.capacity',
+  batteryForecast: 'battery.forecast',
+}
+
 /**
  * Konvertiert eine MQTT-Message in ein Store-Update-Objekt.
+ *
+ * Topic-to-store-key rules:
+ *   site/gridPower          → grid.power          (nested, via SITE_REMAP)
+ *   site/batteryPower       → battery.power        (nested, via SITE_REMAP)
+ *   site/xxx                → xxx                  (flat, unchanged)
+ *   loadpoints/N/field      → loadpoints.(N-1).field  (1-indexed → 0-indexed)
+ *   pv|aux|ext/N/field      → pv|aux|ext.(N-1).field  (1-indexed → 0-indexed)
+ *   battery/N/field         → battery.devices.(N-1).field
  */
 export function mqttToStoreUpdate(
   topic: string,
@@ -164,12 +183,22 @@ export function mqttToStoreUpdate(
   let storeKey: string
 
   if (parts[0] === 'loadpoints' && parts.length >= 3) {
-    const mqttIndex = parseInt(parts[1])
-    const storeIndex = mqttIndex - 1
+    const storeIndex = parseInt(parts[1]) - 1
     const field = parts.slice(2).join('.')
     storeKey = `loadpoints.${storeIndex}.${field}`
   } else if (parts[0] === 'site' && parts.length >= 2) {
-    storeKey = parts.slice(1).join('.')
+    const siteField = parts.slice(1).join('.')
+    storeKey = SITE_REMAP[siteField] ?? siteField
+  } else if (parts[0] === 'battery' && parts.length >= 3) {
+    // battery/N/field → battery.devices.(N-1).field
+    const storeIndex = parseInt(parts[1]) - 1
+    const field = parts.slice(2).join('.')
+    storeKey = `battery.devices.${storeIndex}.${field}`
+  } else if ((parts[0] === 'pv' || parts[0] === 'aux' || parts[0] === 'ext') && parts.length >= 3) {
+    // 1-indexed in evcc MQTT → 0-indexed in store
+    const storeIndex = parseInt(parts[1]) - 1
+    const field = parts.slice(2).join('.')
+    storeKey = `${parts[0]}.${storeIndex}.${field}`
   } else {
     storeKey = parts.join('.')
   }
