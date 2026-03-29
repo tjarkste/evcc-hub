@@ -81,7 +81,15 @@ export function connectMqtt(config: MqttConfig): MqttClient {
 
   client.on('message', (topic, payload) => {
     store.state.lastDataAt = Date.now()
-    const storeUpdate = mqttToStoreUpdate(topic, payload.toString(), currentTopicPrefix)
+    const raw = payload.toString()
+    const storeUpdate = mqttToStoreUpdate(topic, raw, currentTopicPrefix)
+    if ((window as any).__mqttDebug) {
+      if (storeUpdate) {
+        console.log('[MQTT]', topic, '→', storeUpdate)
+      } else {
+        console.log('[MQTT] ignored:', topic, raw)
+      }
+    }
     if (storeUpdate) {
       store.update(storeUpdate)
       saveStateCache(store.state)
@@ -103,6 +111,20 @@ export function connectMqtt(config: MqttConfig): MqttClient {
   client.on('error', (err) => {
     console.warn('MQTT error:', err.message)
   })
+
+  // Expose debug helpers on window for browser devtools
+  ;(window as any).__mqtt = {
+    get client() { return client },
+    get prefix() { return currentTopicPrefix },
+    get state() { return store.state },
+    debug(on = true) {
+      (window as any).__mqttDebug = on
+      console.log(`[MQTT] debug logging ${on ? 'ON' : 'OFF'}`)
+    },
+    publish(topic: string, value: string) {
+      client?.publish(topic, value)
+    },
+  }
 
   return client
 }
