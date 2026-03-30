@@ -116,4 +116,14 @@ export async function logout(): Promise<void> {
   localStorage.removeItem('evcc-cloud-selected-site')
   localStorage.removeItem('evcc-cloud-state-cache-v2')
   localStorage.removeItem('evcc-cloud-cached-topic-prefix')
+
+  // Disconnect the MQTT client so the next user doesn't inherit this session's
+  // live data stream. Import lazily to avoid a circular dependency at module load.
+  const { disconnectMqtt } = await import('./mqtt')
+  disconnectMqtt()
+
+  // Clear in-memory store state so the next login starts clean.
+  const { default: store } = await import('../store')
+  store.reset()
+  store.state.lastDataAt = null
 }

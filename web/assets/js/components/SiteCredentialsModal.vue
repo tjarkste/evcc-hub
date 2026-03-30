@@ -126,11 +126,13 @@ export default defineComponent({
 	computed: {
 		brokerWithPort(): string {
 			if (!this.credentials) return ''
-			const url = this.credentials.brokerUrl || 'tls://evcc-hub.de'
+			const raw = this.credentials.brokerUrl || 'evcc-hub.de'
 			const port = this.credentials.brokerPort || 8883
-			// If the URL already contains a port, use it as-is
-			if (url.match(/:\d+$/)) return url
-			return `${url}:${port}`
+			// Ensure tls:// scheme
+			const withScheme = /^[a-z]+:\/\//.test(raw) ? raw : `tls://${raw}`
+			// If the URL already ends with a port number, use it as-is
+			if (/:\d+$/.test(withScheme)) return withScheme
+			return `${withScheme}:${port}`
 		},
 	},
 	watch: {

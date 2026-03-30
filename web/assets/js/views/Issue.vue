@@ -579,7 +579,7 @@ export default defineComponent({
 		async updateAreas() {
 			try {
 				const response = await api.get("/system/log/areas");
-				this.logAvailableAreas = response.data || [];
+				this.logAvailableAreas = Array.isArray(response.data) ? response.data : [];
 			} catch (error) {
 				console.error("Failed to load log areas:", error);
 			}
