@@ -1056,6 +1056,13 @@
       "descriptionPlaceholder": "Describe what you expected to happen and what actually happened...",
       "stepsPlaceholder": "1. Go to...&#10;2. Click on...&#10;3. See error..."
     },
+    "cloudNotAvailable": {
+      "config": "These settings are managed by your local evcc installation. Remote configuration via the cloud is not yet supported by evcc.",
+      "logs": "Log access is not available in the cloud view. Open your local evcc dashboard to view logs.",
+      "issue": "Logs cannot be included automatically in the cloud view. Please describe the problem manually.",
+      "restartTooltip": "Restart is not available in the cloud view.",
+      "backupTooltip": "Backup/restore is not available in the cloud view."
+    },
     "legal": {
       "loading": "Loading..."
     },

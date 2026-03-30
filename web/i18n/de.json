@@ -1056,6 +1056,13 @@
       "descriptionPlaceholder": "Describe what you expected to happen and what actually happened...",
       "stepsPlaceholder": "1. Go to...&#10;2. Click on...&#10;3. See error..."
     },
+    "cloudNotAvailable": {
+      "config": "Diese Einstellungen werden von deiner lokalen evcc-Installation verwaltet. Die Konfiguration über die Cloud wird von evcc noch nicht unterstützt.",
+      "logs": "Log-Zugriff ist in der Cloud-Ansicht nicht verfügbar. Öffne dein lokales evcc-Dashboard, um Logs einzusehen.",
+      "issue": "Logs können in der Cloud-Ansicht nicht automatisch eingebunden werden. Bitte beschreibe das Problem manuell.",
+      "restartTooltip": "Neustart ist in der Cloud-Ansicht nicht verfügbar.",
+      "backupTooltip": "Backup/Wiederherstellung ist in der Cloud-Ansicht nicht verfügbar."
+    },
     "legal": {
       "loading": "Lädt..."
     },
