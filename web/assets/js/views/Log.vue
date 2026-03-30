@@ -2,7 +2,7 @@
 	<div class="root safe-area-inset">
 		<div class="container d-flex h-100 flex-column px-0 pb-4">
 			<TopHeader :title="$t('log.title')" class="mx-4" />
-			<div class="logs d-flex flex-column overflow-hidden flex-grow-1 px-4 mx-2 mx-sm-4">
+			<div v-if="!hubMode" class="logs d-flex flex-column overflow-hidden flex-grow-1 px-4 mx-2 mx-sm-4">
 				<div class="flex-grow-0 row py-4">
 					<div class="col-6 col-lg-3 mb-4 mb-lg-0 d-flex gap-2">
 						<div class="btn-group w-100 w-lg-auto d-flex">
@@ -101,6 +101,9 @@
 					</code>
 					<p v-else class="my-4">{{ $t("log.noResults") }}</p>
 				</div>
+				<div v-else class="px-4 mx-2 mx-sm-4 py-5">
+					<HubModeNotice :message="$t('hub.cloudNotAvailable.logs')" />
+				</div>
 			</div>
 		</div>
 	</div>
@@ -112,7 +115,8 @@ import Header from "../components/Top/Header.vue";
 import Play from "../components/MaterialIcon/Play.vue";
 import Record from "../components/MaterialIcon/Record.vue";
 import MultiSelect from "../components/Helper/MultiSelect.vue";
-import api from "../api";
+import api, { HUB_MODE } from "../api";
+import HubModeNotice from "../components/HubModeNotice.vue";
 import store from "../store";
 import { defineComponent, type PropType } from "vue";
 import type { Timeout } from "@/types/evcc";
@@ -128,6 +132,7 @@ export default defineComponent({
 		Play,
 		Record,
 		MultiSelect,
+		HubModeNotice,
 	},
 	props: {
 		areas: { type: Array as PropType<string[]>, default: () => [] },
@@ -141,6 +146,7 @@ export default defineComponent({
 			timeout: null as Timeout,
 			levels: LOG_LEVELS,
 			busy: false,
+			hubMode: HUB_MODE,
 		};
 	},
 	head() {
@@ -210,8 +216,10 @@ export default defineComponent({
 		},
 	},
 	mounted() {
-		this.startInterval();
-		this.updateAreas();
+		if (!HUB_MODE) {
+			this.startInterval();
+			this.updateAreas();
+		}
 	},
 	unmounted() {
 		this.stopInterval();
