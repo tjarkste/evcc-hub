@@ -15,11 +15,14 @@
 				/>
 
 				<h2 class="my-4 mt-5">{{ $t("config.section.general") }}</h2>
-				<GeneralConfig
-					:experimental="experimental"
-					:sponsor-error="hasClassError('sponsorship')"
-					@site-changed="siteChanged"
-				/>
+				<template v-if="!hubMode">
+					<GeneralConfig
+						:experimental="experimental"
+						:sponsor-error="hasClassError('sponsorship')"
+						@site-changed="siteChanged"
+					/>
+				</template>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<WelcomeBanner v-if="setupRequired" />
 				<h2 class="my-4">{{ $t("config.section.loadpoints") }}</h2>
@@ -29,7 +32,7 @@
 						:key="loadpoint.name"
 						:title="loadpoint.title"
 						:name="loadpoint.name"
-						:editable="!!loadpoint.id"
+						:editable="!hubMode && !!loadpoint.id"
 						:error="hasDeviceError('loadpoint', loadpoint.name)"
 						data-testid="loadpoint"
 						@edit="openModal('loadpoint', { id: loadpoint.id })"
@@ -47,6 +50,7 @@
 					</DeviceCard>
 
 					<NewDeviceButton
+						v-if="!hubMode"
 						data-testid="add-loadpoint"
 						:title="$t('config.main.addLoadpoint')"
 						@click="openModal('loadpoint')"
@@ -60,7 +64,7 @@
 						:key="vehicle.name"
 						:title="vehicle.config?.title || vehicle.name"
 						:name="vehicle.name"
-						:editable="vehicle.id >= 0"
+						:editable="!hubMode && vehicle.id >= 0"
 						:error="hasDeviceError('vehicle', vehicle.name)"
 						data-testid="vehicle"
 						@edit="openModal('vehicle', { id: vehicle.id })"
@@ -73,6 +77,7 @@
 						</template>
 					</DeviceCard>
 					<NewDeviceButton
+						v-if="!hubMode"
 						data-testid="add-vehicle"
 						:title="$t('config.main.addVehicle')"
 						@click="openModal('vehicle')"
@@ -80,7 +85,7 @@
 				</div>
 
 				<h2 class="my-4 mt-5">{{ $t("config.section.grid") }}</h2>
-				<div class="p-0 config-list">
+				<div v-if="!hubMode" class="p-0 config-list">
 					<MeterCard
 						v-if="gridMeter"
 						:meter="gridMeter"
@@ -97,8 +102,9 @@
 						@click="openModal('meter', { type: 'grid' })"
 					/>
 				</div>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 				<h2 class="my-4 mt-5">{{ $t("config.section.meter") }}</h2>
-				<div class="p-0 config-list">
+				<div v-if="!hubMode" class="p-0 config-list">
 					<MeterCard
 						v-for="meter in pvMeters"
 						:key="meter.name"
@@ -122,9 +128,10 @@
 						@click="openModal('meter', { choices: ['pv', 'battery'] })"
 					/>
 				</div>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<h2 class="my-4 mt-5">{{ $t("config.section.additionalMeter") }}</h2>
-				<div class="p-0 config-list">
+				<div v-if="!hubMode" class="p-0 config-list">
 					<MeterCard
 						v-for="meter in auxMeters"
 						:key="meter.name"
@@ -148,8 +155,10 @@
 						@click="openModal('meter', { choices: ['aux', 'ext'] })"
 					/>
 				</div>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<h2 class="my-4 mt-5">{{ $t("config.tariff.title") }}</h2>
+				<template v-if="!hubMode">
 				<div v-if="!!tariffsYamlSource" class="p-0 config-list">
 					<DeviceCard
 						:title="$t('config.tariff.title')"
@@ -227,10 +236,12 @@
 						@click="openModal('tariff', { choices: possibleForecastTypes })"
 					/>
 				</div>
+				</template>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<h2 class="my-4 mt-5">{{ $t("config.section.integrations") }}</h2>
 
-				<div class="p-0 config-list">
+				<div v-if="!hubMode" class="p-0 config-list">
 					<AuthProvidersCard
 						:providers="authProviders"
 						data-testid="auth-providers"
@@ -320,9 +331,10 @@
 						</template>
 					</DeviceCard>
 				</div>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<h2 class="my-4 mt-5">{{ $t("config.section.services") }}</h2>
-				<div class="p-0 config-list">
+				<div v-if="!hubMode" class="p-0 config-list">
 					<DeviceCard
 						:title="$t('config.ocpp.title')"
 						editable
@@ -351,6 +363,7 @@
 						<template #icon><EebusIcon /></template>
 					</DeviceCard>
 				</div>
+				<HubModeNotice v-else :message="$t('hub.cloudNotAvailable.config')" />
 
 				<hr class="my-5" />
 
@@ -365,11 +378,18 @@
 					<button
 						data-testid="backup-restore"
 						class="btn btn-outline-secondary text-truncate"
+						:disabled="hubMode"
+						:title="hubMode ? $t('hub.cloudNotAvailable.backupTooltip') : undefined"
 						@click="openModal('backuprestore')"
 					>
 						{{ $t("config.system.backupRestore.title") }}
 					</button>
-					<button class="btn btn-outline-danger" @click="restart">
+					<button
+						class="btn btn-outline-danger"
+						:disabled="hubMode"
+						:title="hubMode ? $t('hub.cloudNotAvailable.restartTooltip') : undefined"
+						@click="restart"
+					>
 						{{ $t("config.system.restart") }}
 					</button>
 				</div>
@@ -424,7 +444,8 @@ import "@h2d2/shopicons/es/regular/batterythreequarters";
 import "@h2d2/shopicons/es/regular/powersupply";
 import "@h2d2/shopicons/es/regular/receivepayment";
 import NewDeviceButton from "../components/Config/NewDeviceButton.vue";
-import api from "../api";
+import api, { HUB_MODE } from "../api";
+import HubModeNotice from "../components/HubModeNotice.vue";
 import ChargerModal from "../components/Config/ChargerModal.vue";
 import CircuitsIcon from "../components/MaterialIcon/Circuits.vue";
 import CircuitsModal from "../components/Config/CircuitsModal.vue";
@@ -553,6 +574,7 @@ export default defineComponent({
 		AuthSuccessBanner,
 		PasswordModal,
 		AuthProvidersCard,
+		HubModeNotice,
 	},
 	mixins: [formatter, collector],
 	props: {
@@ -594,6 +616,7 @@ export default defineComponent({
 			} as DeviceValuesMap,
 			isComponentMounted: true,
 			isPageVisible: true,
+			hubMode: HUB_MODE,
 		};
 	},
 	head() {
