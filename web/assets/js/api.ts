@@ -3,6 +3,8 @@
 
 import { publishCommand } from './services/mqtt'
 
+export const HUB_MODE = true
+
 interface MqttMapping {
   topic: string
   payload: string

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { restPathToMqttTopic } from '../api'
+import { restPathToMqttTopic, HUB_MODE } from '../api'
 
 describe('restPathToMqttTopic', () => {
   test('mode change', () => {
@@ -37,11 +37,45 @@ describe('restPathToMqttTopic', () => {
     })
   })
 
+  test('prioritysoc', () => {
+    expect(restPathToMqttTopic('prioritysoc/10')).toEqual({
+      topic: 'site/prioritySoc/set',
+      payload: '10',
+    })
+  })
+
+  test('buffersoc', () => {
+    expect(restPathToMqttTopic('buffersoc/80')).toEqual({
+      topic: 'site/bufferSoc/set',
+      payload: '80',
+    })
+  })
+
+  test('bufferstartsoc', () => {
+    expect(restPathToMqttTopic('bufferstartsoc/50')).toEqual({
+      topic: 'site/bufferStartSoc/set',
+      payload: '50',
+    })
+  })
+
+  test('batterydischargecontrol', () => {
+    expect(restPathToMqttTopic('batterydischargecontrol/true')).toEqual({
+      topic: 'site/batteryDischargeControl/set',
+      payload: 'true',
+    })
+  })
+
   test('unsupported path returns null', () => {
     expect(restPathToMqttTopic('loadpoints/1/vehicle/mycar')).toBeNull()
   })
 
   test('unknown path returns null', () => {
     expect(restPathToMqttTopic('sessions')).toBeNull()
+  })
+})
+
+describe('HUB_MODE', () => {
+  test('is true in hub/cloud mode', () => {
+    expect(HUB_MODE).toBe(true)
   })
 })
