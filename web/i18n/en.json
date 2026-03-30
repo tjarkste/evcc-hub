@@ -1059,6 +1059,13 @@
     "legal": {
       "loading": "Loading..."
     },
+    "account": {
+      "title": "Account & Sites",
+      "navLabel": "Account & Sites",
+      "save": "Save",
+      "cancel": "Cancel",
+      "renameSite": "Rename site"
+    },
     "nav": {
       "optimize": "Optimize 🧪",
       "profileSettings": "Profile & Settings"
@@ -1091,6 +1098,7 @@
       "copied": "Copied!",
       "createError": "Could not create site.",
       "credentials": {
+        "broker": "Broker",
         "brokerPort": "Broker Port",
         "brokerUrl": "Broker URL",
         "close": "Close",
@@ -1102,9 +1110,11 @@
         "loading": "Loading…",
         "mqttPassword": "MQTT Password",
         "mqttUsername": "MQTT Username",
+        "selfSignedNoteLabel": "Note:",
+        "selfSignedNote": "Do NOT enable 'Allow self-signed certificates' in evcc.",
         "show": "Show",
         "title": "MQTT Credentials — {siteName}",
-        "topicPrefix": "Topic Prefix",
+        "topicPrefix": "Topic",
         "ariaLabel": "MQTT Credentials for {name}"
       },
       "delete": "Delete",

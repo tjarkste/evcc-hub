@@ -114,7 +114,7 @@ export default defineComponent({
       try {
         const site = await createSite(this.newSiteName.trim())
         this.createdSite = site
-        this.createdSiteConfig = `mqtt:\n  broker: tls://mqtt.evcc-hub.de:8883\n  topic: ${site.topicPrefix}\n  user: ${site.mqttUsername}\n  password: "${site.mqttPassword}"`
+        this.createdSiteConfig = `mqtt:\n  broker: tls://evcc-hub.de:8883\n  topic: ${site.topicPrefix}\n  user: ${site.mqttUsername}\n  password: "${site.mqttPassword}"`
         this.newSiteName = ''
         this.sites = await fetchSites()
       } catch {

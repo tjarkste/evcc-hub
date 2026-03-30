@@ -64,8 +64,8 @@
 				</button>
 			</li>
 			<li>
-				<router-link class="dropdown-item" to="/settings" active-class="active">
-					{{ $t('hub.nav.profileSettings') }}
+				<router-link class="dropdown-item" to="/account" active-class="active">
+					{{ $t('hub.account.navLabel') }}
 				</router-link>
 			</li>
 			<li><hr class="dropdown-divider" /></li>

@@ -11,11 +11,15 @@ interface MqttMapping {
 /**
  * Konvertiert REST-API-Pfade in MQTT-Topics.
  *
- * POST loadpoints/1/mode/pv      → loadpoints/1/mode/set, "pv"
- * POST loadpoints/1/limitsoc/80  → loadpoints/1/limitSoc/set, "80"
- * POST loadpoints/1/minsoc/20    → loadpoints/1/minSoc/set, "20"
- * POST loadpoints/1/phases/3     → loadpoints/1/phasesConfigured/set, "3"
- * POST site/batterymode/hold     → site/batteryMode/set, "hold"
+ * POST loadpoints/1/mode/pv          → loadpoints/1/mode/set, "pv"
+ * POST loadpoints/1/limitsoc/80      → loadpoints/1/limitSoc/set, "80"
+ * POST loadpoints/1/minsoc/20        → loadpoints/1/minSoc/set, "20"
+ * POST loadpoints/1/phases/3         → loadpoints/1/phasesConfigured/set, "3"
+ * POST site/batterymode/hold         → site/batteryMode/set, "hold"
+ * POST prioritysoc/10                → site/prioritySoc/set, "10"
+ * POST buffersoc/80                  → site/bufferSoc/set, "80"
+ * POST bufferstartsoc/50             → site/bufferStartSoc/set, "50"
+ * POST batterydischargecontrol/true  → site/batteryDischargeControl/set, "true"
  */
 export function restPathToMqttTopic(path: string): MqttMapping | null {
   // loadpoints/{id}/mode/{value}
@@ -41,6 +45,22 @@ export function restPathToMqttTopic(path: string): MqttMapping | null {
   // site/smartcostlimit/{value}
   match = path.match(/^site\/smartcostlimit\/(.+)$/i)
   if (match) return { topic: `site/smartCostLimit/set`, payload: match[1] }
+
+  // prioritysoc/{value}
+  match = path.match(/^prioritysoc\/(.+)$/i)
+  if (match) return { topic: `site/prioritySoc/set`, payload: match[1] }
+
+  // buffersoc/{value}
+  match = path.match(/^buffersoc\/(.+)$/i)
+  if (match) return { topic: `site/bufferSoc/set`, payload: match[1] }
+
+  // bufferstartsoc/{value}
+  match = path.match(/^bufferstartsoc\/(.+)$/i)
+  if (match) return { topic: `site/bufferStartSoc/set`, payload: match[1] }
+
+  // batterydischargecontrol/{value}
+  match = path.match(/^batterydischargecontrol\/(.+)$/i)
+  if (match) return { topic: `site/batteryDischargeControl/set`, payload: match[1] }
 
   return null
 }

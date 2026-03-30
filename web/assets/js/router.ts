@@ -60,7 +60,7 @@ export function stringifyQuery(query?: Record<string, any>): string {
 
 const LoginView = () => import("./views/LoginView.vue");
 const SiteManager = () => import("./views/SiteManager.vue");
-const SiteOverview = () => import("./views/SiteOverview.vue");
+const AccountView = () => import("./views/AccountView.vue");
 
 export default function setupRouter(i18n: VueI18nInstance) {
   const router = createRouter({
@@ -71,8 +71,10 @@ export default function setupRouter(i18n: VueI18nInstance) {
       { path: "/datenschutz", component: () => import("./views/Datenschutz.vue"), meta: { noAuth: true } },
       { path: "/nutzungsbedingungen", component: () => import("./views/Nutzungsbedingungen.vue"), meta: { noAuth: true } },
       { path: "/login", component: LoginView, meta: { noAuth: true } },
-      // Stub route — App.vue renders SiteOverview inline via v-if; route must exist for $router.push('/overview') to resolve
-      { path: "/overview", component: SiteOverview, meta: { noDataRequired: true } },
+      // /overview and /settings redirect to the unified account page
+      { path: "/overview", redirect: "/account" },
+      { path: "/settings", redirect: "/account" },
+      { path: "/account", component: AccountView, meta: { noDataRequired: true } },
       { path: "/sites", component: SiteManager },
       {
         path: "/",

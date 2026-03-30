@@ -29,21 +29,21 @@
 
 					<template v-else-if="credentials">
 						<div class="mb-3">
-							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.brokerUrl') }}</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.broker') }}</label>
 							<div class="input-group">
-								<input type="text" class="form-control" :value="credentials.brokerUrl" readonly />
-								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.brokerUrl, 'brokerUrl')">
-									{{ copied === 'brokerUrl' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
+								<input type="text" class="form-control" :value="brokerWithPort" readonly />
+								<button class="btn btn-outline-secondary" type="button" @click="copy(brokerWithPort, 'broker')">
+									{{ copied === 'broker' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
 
 						<div class="mb-3">
-							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.brokerPort') }}</label>
+							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.topicPrefix') }}</label>
 							<div class="input-group">
-								<input type="text" class="form-control" :value="credentials.brokerPort" readonly />
-								<button class="btn btn-outline-secondary" type="button" @click="copy(String(credentials.brokerPort), 'brokerPort')">
-									{{ copied === 'brokerPort' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
+								<input type="text" class="form-control" :value="credentials.topicPrefix" readonly />
+								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.topicPrefix, 'topicPrefix')">
+									{{ copied === 'topicPrefix' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
 								</button>
 							</div>
 						</div>
@@ -76,15 +76,10 @@
 							</div>
 						</div>
 
-						<div class="mb-0">
-							<label class="form-label fw-semibold">{{ $t('hub.sites.credentials.topicPrefix') }}</label>
-							<div class="input-group">
-								<input type="text" class="form-control" :value="credentials.topicPrefix" readonly />
-								<button class="btn btn-outline-secondary" type="button" @click="copy(credentials.topicPrefix, 'topicPrefix')">
-									{{ copied === 'topicPrefix' ? $t('hub.sites.credentials.copied') : $t('hub.sites.credentials.copy') }}
-								</button>
-							</div>
-						</div>
+						<p class="text-muted small mb-0">
+							<strong>{{ $t('hub.sites.credentials.selfSignedNoteLabel') }}</strong>
+							{{ $t('hub.sites.credentials.selfSignedNote') }}
+						</p>
 					</template>
 				</div>
 				<div class="modal-footer">
@@ -127,6 +122,16 @@ export default defineComponent({
 			showPassword: false,
 			copied: '' as string,
 		}
+	},
+	computed: {
+		brokerWithPort(): string {
+			if (!this.credentials) return ''
+			const url = this.credentials.brokerUrl || 'tls://evcc-hub.de'
+			const port = this.credentials.brokerPort || 8883
+			// If the URL already contains a port, use it as-is
+			if (url.match(/:\d+$/)) return url
+			return `${url}:${port}`
+		},
 	},
 	watch: {
 		siteId(newId: string | null) {

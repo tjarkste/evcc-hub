@@ -130,6 +130,10 @@
             >
               {{ copied ? $t('hub.auth.onboarding.copied') : $t('hub.auth.onboarding.copy') }}
             </button>
+            <p class="text-muted small mt-2 mb-0">
+              <strong>{{ $t('hub.sites.credentials.selfSignedNoteLabel') }}</strong>
+              {{ $t('hub.sites.credentials.selfSignedNote') }}
+            </p>
           </div>
         </div>
 
@@ -213,7 +217,7 @@ export default defineComponent({
         const site = auth.defaultSite
         if (site) {
           this.mqttConfig = `mqtt:
-  broker: tls://mqtt.evcc-hub.de:8883
+  broker: tls://evcc-hub.de:8883
   topic: ${site.topicPrefix}
   user: ${site.mqttUsername}
   password: "${site.mqttPassword}"`

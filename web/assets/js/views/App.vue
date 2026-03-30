@@ -20,12 +20,6 @@
 						</small>
 					</div>
 				</template>
-				<SiteOverview
-					v-else-if="$route.path === '/overview'"
-					:sites="sites"
-					:selected-site-id="selectedSiteId"
-					@select-site="handleSelectSite"
-				/>
 				<router-view
 					v-else-if="showRoutes"
 					:notifications="notifications"
@@ -68,7 +62,6 @@ import HelpModal from "../components/HelpModal.vue";
 import ConnectionStatus from "../components/ConnectionStatus.vue";
 import ErrorBoundary from "../components/ErrorBoundary.vue";
 import SiteSwitcher from "../components/Top/SiteSwitcher.vue";
-import SiteOverview from "../views/SiteOverview.vue";
 import WaitingForData from "../components/WaitingForData.vue";
 import TopNavigationArea from "../components/Top/TopNavigationArea.vue";
 import collector from "../mixins/collector";
@@ -92,7 +85,6 @@ export default defineComponent({
 		ConnectionStatus,
 		ErrorBoundary,
 		SiteSwitcher,
-		SiteOverview,
 		WaitingForData,
 		TopNavigationArea,
 	},
@@ -200,9 +192,9 @@ export default defineComponent({
 				this.selectedSiteId = site.id;
 				setSelectedSiteId(site.id);
 				subscribeSite(site.topicPrefix);
-				// Multi-site users land on /overview; single-site users go straight to /
+				// Multi-site users land on /account; single-site users go straight to /
 				if (this.sites.length > 1 && this.$route.path === '/') {
-					this.$router.push('/overview');
+					this.$router.push('/account');
 				}
 			}
 		} catch (e) {
@@ -231,15 +223,6 @@ export default defineComponent({
 			store.reset();
 			store.state.lastDataAt = null;
 			subscribeSite(site.topicPrefix);
-		},
-		handleSelectSite(site: Site) {
-			this.selectedSiteId = site.id;
-			setSelectedSiteId(site.id);
-			this.hasCachedState = false;
-			store.reset();
-			store.state.lastDataAt = null;
-			subscribeSite(site.topicPrefix);
-			this.$router.push('/');
 		},
 	},
 });

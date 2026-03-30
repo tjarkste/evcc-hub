@@ -114,4 +114,6 @@ export async function logout(): Promise<void> {
   stopTokenRefresh()
   localStorage.removeItem(AUTH_KEY)
   localStorage.removeItem('evcc-cloud-selected-site')
+  localStorage.removeItem('evcc-cloud-state-cache-v2')
+  localStorage.removeItem('evcc-cloud-cached-topic-prefix')
 }

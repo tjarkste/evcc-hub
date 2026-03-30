@@ -1059,6 +1059,13 @@
     "legal": {
       "loading": "Lädt..."
     },
+    "account": {
+      "title": "Konto & Standorte",
+      "navLabel": "Konto & Standorte",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "renameSite": "Standort umbenennen"
+    },
     "nav": {
       "optimize": "Optimize 🧪",
       "profileSettings": "Profil & Einstellungen"
@@ -1091,6 +1098,7 @@
       "copied": "Kopiert!",
       "createError": "Standort konnte nicht erstellt werden.",
       "credentials": {
+        "broker": "Broker",
         "brokerPort": "Broker Port",
         "brokerUrl": "Broker URL",
         "close": "Schließen",
@@ -1102,9 +1110,11 @@
         "loading": "Lädt…",
         "mqttPassword": "MQTT-Passwort",
         "mqttUsername": "MQTT-Benutzername",
+        "selfSignedNoteLabel": "Hinweis:",
+        "selfSignedNote": "Du musst 'Selbstsignierte Zertifikate erlauben' in evcc NICHT aktivieren.",
         "show": "Anzeigen",
         "title": "MQTT-Zugangsdaten — {siteName}",
-        "topicPrefix": "Topic Prefix",
+        "topicPrefix": "Topic",
         "ariaLabel": "MQTT-Zugangsdaten für {name}"
       },
       "delete": "Löschen",

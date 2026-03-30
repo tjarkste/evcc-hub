@@ -102,7 +102,7 @@ export default defineComponent({
 			return this.ocpp.status;
 		},
 		stations() {
-			return this.status.stations;
+			return Array.isArray(this.status?.stations) ? this.status.stations : [];
 		},
 		ocppUrl(): string {
 			return getOcppUrl(this.ocpp);

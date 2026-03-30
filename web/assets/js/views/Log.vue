@@ -230,7 +230,7 @@ export default defineComponent({
 						count: showAll ? null : DEFAULT_COUNT,
 					},
 				});
-				this.lines = response.data || [];
+				this.lines = Array.isArray(response.data) ? response.data : [];
 				this.$nextTick(() => {
 					if (showAll) {
 						this.scrollToTop();
@@ -259,7 +259,7 @@ export default defineComponent({
 		async updateAreas() {
 			try {
 				const response = await api.get("/system/log/areas");
-				this.availableAreas = response.data || [];
+				this.availableAreas = Array.isArray(response.data) ? response.data : [];
 			} catch (e) {
 				console.error(e);
 			}
