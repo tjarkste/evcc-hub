@@ -53,6 +53,9 @@
 				</div>
 
 				<form v-if="helpType" @submit.prevent="handleFormSubmit">
+					<div v-if="hubMode" class="mb-4">
+						<HubModeNotice :message="$t('hub.cloudNotAvailable.issue')" />
+					</div>
 					<!-- Essential Form Section -->
 					<div class="d-flex justify-content-between align-items-center mb-3">
 						<h4>
@@ -203,6 +206,7 @@
 
 							<!-- Logs Section with Special Controls -->
 							<IssueAdditionalItem
+								v-if="!hubMode"
 								id="issueLogs"
 								:included="sections.logs.included"
 								:title="$t('issue.additional.logs')"
@@ -321,6 +325,8 @@ import IssueAdditionalItem from "@/components/Issue/AdditionalItem.vue";
 import SummaryModal from "@/components/Issue/SummaryModal.vue";
 import Modal from "bootstrap/js/dist/modal";
 import api from "@/api";
+import { HUB_MODE } from '../api'
+import HubModeNotice from '../components/HubModeNotice.vue'
 import store from "@/store";
 import { LOG_LEVELS, DEFAULT_LOG_LEVEL } from "@/utils/log";
 import { formatJson } from "@/components/Issue/format";
@@ -354,6 +360,7 @@ export default defineComponent({
 		MultiSelect,
 		IssueAdditionalItem,
 		SummaryModal,
+		HubModeNotice,
 	},
 	data() {
 		return {
@@ -374,6 +381,8 @@ export default defineComponent({
 				logs: { content: "", included: true },
 				state: { content: "", included: false },
 			} as Record<SectionType, SectionData>,
+
+			hubMode: HUB_MODE,
 
 			// Log configuration
 			logLevels: [...LOG_LEVELS],
@@ -454,8 +463,10 @@ export default defineComponent({
 		this.loadYamlConfig();
 		this.loadUiConfig();
 		this.loadState();
-		this.loadLogs();
-		this.updateAreas();
+		if (!HUB_MODE) {
+			this.loadLogs();
+			this.updateAreas();
+		}
 	},
 	methods: {
 		// Type-dependent translation helper
