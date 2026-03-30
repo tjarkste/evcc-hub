@@ -101,9 +101,9 @@
 					</code>
 					<p v-else class="my-4">{{ $t("log.noResults") }}</p>
 				</div>
-				<div v-else class="px-4 mx-2 mx-sm-4 py-5">
-					<HubModeNotice :message="$t('hub.cloudNotAvailable.logs')" />
-				</div>
+			</div>
+			<div v-else class="px-4 mx-2 mx-sm-4 py-5">
+				<HubModeNotice :message="$t('hub.cloudNotAvailable.logs')" />
 			</div>
 		</div>
 	</div>
