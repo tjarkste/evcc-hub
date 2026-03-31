@@ -170,11 +170,12 @@ func TestRegister_LogsNewSignup(t *testing.T) {
 	// This is a log-output test — we capture stderr/stdout
 	// to verify the [NEWSIGNUP] marker is emitted.
 	var buf bytes.Buffer
+	// NOTE: log.SetOutput redirects the global logger. This is not parallel-safe.
+	// If t.Parallel() is ever added to this package, use a logger injected into authHandler instead.
 	log.SetOutput(&buf)
 	defer log.SetOutput(os.Stderr)
 
-	r, db := setupAuthTestRouter(t)
-	defer db.Close()
+	r, _ := setupAuthTestRouter(t)
 
 	body := `{"email":"signup-log@example.com","password":"password123"}`
 	w := httptest.NewRecorder()
