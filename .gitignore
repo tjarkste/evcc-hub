@@ -20,8 +20,8 @@ deploy/nginx/ssl/
 # Worktrees
 .worktrees/
 
-# Internal planning docs
-docs/superpowers/
+# Internal docs
+docs/
 
 # Dev scripts
 scripts/
