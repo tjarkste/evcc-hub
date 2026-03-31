@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,6 +10,7 @@ import (
 	"evcc-cloud/backend/internal/models"
 	"evcc-cloud/backend/internal/storage"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -39,6 +41,7 @@ func (h *authHandler) Register(c *gin.Context) {
 	}
 
 	log.Printf("[NEWSIGNUP] new user registered (id=%s)", user.ID) // email omitted for PII
+	sentry.CaptureMessage(fmt.Sprintf("[NEWSIGNUP] new user registered (id=%s)", user.ID))
 
 	token, err := auth.GenerateToken(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
