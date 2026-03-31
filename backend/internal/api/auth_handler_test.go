@@ -3,9 +3,11 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"evcc-cloud/backend/internal/auth"
@@ -161,5 +163,29 @@ func TestRefreshEndpoint_InvalidToken(t *testing.T) {
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("got %d, want 401", w.Code)
+	}
+}
+
+func TestRegister_LogsNewSignup(t *testing.T) {
+	// This is a log-output test — we capture stderr/stdout
+	// to verify the [NEWSIGNUP] marker is emitted.
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(os.Stderr)
+
+	r, db := setupAuthTestRouter(t)
+	defer db.Close()
+
+	body := `{"email":"signup-log@example.com","password":"password123"}`
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/auth/register", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("got %d, want 201: %s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(buf.String(), "[NEWSIGNUP]") {
+		t.Errorf("expected [NEWSIGNUP] in log output, got: %s", buf.String())
 	}
 }

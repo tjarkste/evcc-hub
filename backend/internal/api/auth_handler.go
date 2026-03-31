@@ -38,6 +38,8 @@ func (h *authHandler) Register(c *gin.Context) {
 		return
 	}
 
+	log.Printf("[NEWSIGNUP] new user registered (id=%s)", user.ID) // email omitted for PII
+
 	token, err := auth.GenerateToken(user.ID, user.Email, h.jwtSecret)
 	if err != nil {
 		apiError(c, http.StatusInternalServerError, "token_generation_failed", "could not generate token")
